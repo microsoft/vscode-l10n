@@ -1,14 +1,6 @@
-import { decodeEntities, encodeEntities } from "./utils";
 import * as xml2js from 'xml2js';
 import { Line } from "./line";
-import { JavaScriptMessageBundle } from "../common";
-
-export interface ParsedXLF {
-	messages: { [key: string]: string };
-	originalFilePath: string;
-	language: string;
-}
-
+import { i18nJsonDetails, i18nJsonFormat, MessageInfo } from "../common";
 
 interface Item {
 	id: string;
@@ -16,20 +8,11 @@ interface Item {
 	comment?: string;
 }
 
-interface PackageJsonMessageFormat {
-	message: string;
-	comment: string[];
+function getMessage(value: MessageInfo): string {
+	return typeof value === 'string' ? value : value.message;
 }
-
-type MessageInfo = string | PackageJsonMessageFormat;
-
-namespace MessageInfo {
-	export function message(value: MessageInfo): string {
-		return typeof value === 'string' ? value : value.message;
-	}
-	export function comment(value: MessageInfo): string[] | undefined {
-		return typeof value === 'string' ? undefined : value.comment;
-	}
+function getComment(value: MessageInfo): string[] | undefined {
+	return typeof value === 'string' ? undefined : value.comment;
 }
 
 export class XLF {
@@ -56,7 +39,7 @@ export class XLF {
 		return this.buffer.join('\r\n');
 	}
 
-	public addFile(key: 'bundle' | 'package', bundle: JavaScriptMessageBundle) {
+	public addFile(key: 'bundle' | 'package', bundle: i18nJsonFormat): void {
 		if (Object.keys(bundle).length === 0) {
 			return;
 		}
@@ -69,8 +52,8 @@ export class XLF {
 			}
 			existingKeys.add(id);
 
-			const message = encodeEntities(MessageInfo.message(bundle[id]!));
-			const comment = MessageInfo.comment(bundle[id]!)?.map(c => encodeEntities(c)).join(`\r\n`);
+			const message = encodeEntities(getMessage(bundle[id]!));
+			const comment = getComment(bundle[id]!)?.map(c => encodeEntities(c)).join(`\r\n`);
 			this.files[key]!.push({ id, message, comment });
 		}
 	}
@@ -105,7 +88,7 @@ export class XLF {
 		this.buffer.push(line.toString());
 	}
 
-	static parse(xlfString: string): Promise<ParsedXLF[]> {
+	static async parse(xlfString: string): Promise<i18nJsonDetails[]> {
 		const getValue = function (this: void, target: any): string | undefined {
 			if (typeof target === 'string') {
 				return target;
@@ -125,53 +108,72 @@ export class XLF {
 			}
 			return undefined;
 		};
-		return new Promise((resolve, reject) => {
-			const parser = new xml2js.Parser();
-			const files: { messages: { [key: string]: string }, originalFilePath: string, language: string }[] = [];
 
-			parser.parseString(xlfString, (err: any, result: any) => {
-				if (err) {
-					reject(new Error(`Failed to parse XLIFF string. ${err}`));
-				}
+		const parser = new xml2js.Parser();
+		const files: i18nJsonDetails[] = [];
+		const result = await parser.parseStringPromise(xlfString);
 
-				const fileNodes: any[] = result['xliff']['file'];
-				if (!fileNodes) {
-					reject(new Error('XLIFF file does not contain "xliff" or "file" node(s) required for parsing.'));
-				}
+		const fileNodes: any[] = result['xliff']['file'];
+		if (!fileNodes) {
+			throw new Error('XLIFF file does not contain "xliff" or "file" node(s) required for parsing.');
+		}
 
-				fileNodes.forEach((file) => {
-					const originalFilePath = file.$.original;
-					if (!originalFilePath) {
-						reject(new Error('XLIFF file node does not contain original attribute to determine the original location of the resource file.'));
+		fileNodes.forEach((file) => {
+			const type = file.$.original;
+			if (!type) {
+				throw new Error('XLIFF file node does not contain original attribute to determine the original location of the resource file.');
+			}
+			const language = file.$['target-language'].toLowerCase();
+			if (!language) {
+				throw new Error('XLIFF file node does not contain target-language attribute to determine translated language.');
+			}
+
+			const messages: { [key: string]: string } = {};
+			const transUnits = file.body[0]['trans-unit'];
+			if (transUnits) {
+				transUnits.forEach((unit: any) => {
+					const key = unit.$.id;
+					if (!unit.target) {
+						return; // No translation available
 					}
-					const language = file.$['target-language'].toLowerCase();
-					if (!language) {
-						reject(new Error('XLIFF file node does not contain target-language attribute to determine translated language.'));
-					}
 
-					const messages: { [key: string]: string } = {};
-					const transUnits = file.body[0]['trans-unit'];
-					if (transUnits) {
-						transUnits.forEach((unit: any) => {
-							const key = unit.$.id;
-							if (!unit.target) {
-								return; // No translation available
-							}
-
-							const val = getValue(unit.target);
-							if (key && val) {
-								messages[key] = decodeEntities(val);
-							} else {
-								reject(new Error('XLIFF file does not contain full localization data. ID or target translation for one of the trans-unit nodes is not present.'));
-							}
-						});
-
-						files.push({ messages: messages, originalFilePath: originalFilePath, language: language });
+					const val = getValue(unit.target);
+					if (key && val) {
+						messages[key] = decodeEntities(val);
+					} else {
+						throw new Error('XLIFF file does not contain full localization data. ID or target translation for one of the trans-unit nodes is not present.');
 					}
 				});
 
-				resolve(files);
-			});
+				files.push({ messages, type, language });
+			}
 		});
+
+		return files;
 	}
+}
+
+function encodeEntities(value: string): string {
+	const result: string[] = [];
+	for (let i = 0; i < value.length; i++) {
+		const ch = value[i]!;
+		switch (ch) {
+			case '<':
+				result.push('&lt;');
+				break;
+			case '>':
+				result.push('&gt;');
+				break;
+			case '&':
+				result.push('&amp;');
+				break;
+			default:
+				result.push(ch);
+		}
+	}
+	return result.join('');
+}
+
+function decodeEntities(value: string): string {
+	return value.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 }

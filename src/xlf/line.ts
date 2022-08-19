@@ -1,7 +1,7 @@
 export class Line {
 	private buffer: string[] = [];
 
-	constructor(indent: number = 0) {
+	constructor(indent = 0) {
 		if (indent > 0) {
 			this.buffer.push(new Array(indent + 1).join(' '));
 		}

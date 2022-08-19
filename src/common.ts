@@ -1,18 +1,19 @@
-export interface LocalizeInfo {
-	key: string;
+export interface i18nJsonMessageFormat {
+	message: string;
 	comment: string[];
 }
 
-export type KeyInfo = string | LocalizeInfo;
-export namespace KeyInfo {
-	export function key(value: KeyInfo): string {
-		return typeof value === 'string' ? value : value.key;
-	}
-	export function comment(value: KeyInfo): string[] | undefined {
-		return typeof value === 'string' ? undefined : value.comment;
-	}
+export type MessageInfo = string | i18nJsonMessageFormat;
+
+/**
+ * The format of package.nls.json and i18n bundle files
+ */
+export interface i18nJsonFormat {
+	[key: string]: MessageInfo;
 }
 
-export interface JavaScriptMessageBundle {
-	[key: string]: string | { message: string; comment: string[] };
+export interface i18nJsonDetails {
+	messages: i18nJsonFormat;
+	type: 'bundle' | 'package';
+	language: string;
 }

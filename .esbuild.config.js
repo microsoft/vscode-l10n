@@ -1,29 +1,43 @@
 const esbuild = require('esbuild');
+const { dependencies, peerDependencies } = require('./package.json')
+const { Generator } = require('npm-dts');
 
 const watch = process.argv.includes('--watch');
-const minify = !watch || process.argv.includes('--minify');
 
-// Build the editor provider
-esbuild.build({
+if (!watch) {
+	new Generator({
+		entry: 'main.ts',
+		output: 'dist/main.d.ts',
+	}).generate();
+}
+
+const sharedConfig = {
 	entryPoints: ['src/main.ts'],
-	tsconfig: "./tsconfig.json",
 	bundle: true,
-	external: ['vscode'],
-	sourcemap: watch,
-	minify,
 	watch,
+	sourcemap: watch,
+	external: Object.keys(dependencies ?? {}).concat(Object.keys(peerDependencies ?? {})),
+}
+
+esbuild.build({
+	...sharedConfig,
 	platform: 'node',
+	minify: false,
 	outfile: 'dist/main.js',
 }).catch(() => process.exit(1))
 
 esbuild.build({
+	...sharedConfig,
+	platform: 'neutral',
+	minify: !watch,
+	format: 'esm',
+	outfile: 'dist/main.esm.js',
+}).catch(() => process.exit(1))
+
+esbuild.build({
+	...sharedConfig,
 	entryPoints: ['src/cli.ts'],
-	tsconfig: "./tsconfig.json",
-	bundle: true,
-	external: ['vscode'],
-	sourcemap: watch,
-	minify,
-	watch,
+	minify: false,
 	platform: 'node',
 	outfile: 'dist/cli.js',
 }).catch(() => process.exit(1))

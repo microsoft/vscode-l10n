@@ -1,14 +1,64 @@
-# Project
+# vscode-i18n-dev
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+Tooling used for extracting i18n strings from vscode extensions.
 
-As the maintainer of this project, please make a few updates:
+## Usage
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+### As a CLI
+```
+npm install -g vscode-i18n-dev
+```
+or
+```
+npm install --save-dev vscode-i18n-dev
+```
+or `yarn` equivalent.
+
+#### Extracting strings
+```
+vscode-i18n-dev extract ./src/**/*.ts
+```
+> You can optionally specify an `--outDir` or `-o` to specify where the extracted strings should be written to. Current working directory is the default.
+
+#### Generating an XLF file
+
+If you find yourself needing to generate an XLF file, you can use the `generate-xlf` command. This command will generate an XLF file from the the strings in your `package.nls.json` and your newly extracted strings.
+
+```
+vscode-i18n-dev generate-xlf --packageNlsJsonPath ./package.nls.json --i18nBundleJsonPath ./bundle.i18n.default.json --outFile vscode-git.xlf
+```
+> `-p` is the alias for `--packageNlsJsonPath`, `-b` is the alias for `--i18nBundleJsonPath` and `-o` is the alias for `--outFile`.
+
+#### Importing an XLF file
+
+If you receive your translations from your translators in the form of an XLF file, you can use the `import-xlf` command to import the translations into your `package.nls.json` file.
+
+```
+vscode-i18n-dev import-xlf ./translations.xlf
+```
+> You can optionally specify an `--outDir` or `-o` to specify where the extracted strings should be written to. Current working directory is the default.
+
+### As a library
+
+```
+npm install --save-dev vscode-i18n-dev
+```
+or `yarn` equivalent.
+
+```typescript
+import * as path from 'path';
+import { readFileSync } from 'fs';
+import { getI18nJson, getI18nXlf, getI18nFilesFromXlf } from 'vscode-i18n-dev';
+
+// Get the computed i18n json from a set of files
+const result = getI18nJson([readFileSync('extension.ts', 'utf8')]);
+
+// Get the computed xlf from i18n JSON data
+const stringXLF = getI18nXlf(readFileSync(path.resolve('package.nls.json')), result);
+
+// Get the computed i18n json from an xlf file with translations
+const i18nContentsFromXlf = getI18nFilesFromXlf(readFileSync(path.resolve('vscode.git.de.xlf')));
+```
 
 ## Contributing
 

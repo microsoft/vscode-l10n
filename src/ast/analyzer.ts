@@ -1,11 +1,11 @@
 import ts from "typescript";
-import { JavaScriptMessageBundle } from "../common";
-import { SingleFileServiceHost } from "../singleFileServiceHost";
+import { i18nJsonFormat } from "../common";
+import { SingleFileServiceHost } from "./singleFileServiceHost";
 import { collect, isRequireImport, isImportNode, CollectStepResult, findClosestNode, unescapeString } from "./utils";
 
 export interface AnalysisResult {
 	errors: string[];
-	bundle: JavaScriptMessageBundle;
+	bundle: i18nJsonFormat;
 }
 
 export class JavaScriptAnalyzer {
@@ -20,7 +20,7 @@ export class JavaScriptAnalyzer {
         const sourceFile = service.getProgram()!.getSourceFile(filename)!;
     
         const errors: string[] = [];
-        const bundle: JavaScriptMessageBundle = {};
+        const bundle: i18nJsonFormat = {};
     
         // all imports
         const imports = collect(sourceFile, n => isRequireImport(n) || isImportNode(n) ? CollectStepResult.YesAndRecurse : CollectStepResult.NoAndRecurse);
@@ -101,7 +101,7 @@ export class JavaScriptAnalyzer {
             const firstArg = localizeCall.arguments[0]!;
             const secondArg = localizeCall.arguments[1]!;
             let key: string | undefined;
-            let comment: string[] = [];
+            const comment: string[] = [];
             if (ts.isStringLiteralLike(firstArg)) {
                 const text = firstArg.getText();
                 key = text.substring(1, text.length - 1);

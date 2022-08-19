@@ -54,7 +54,7 @@ export function isRequireImport(node: ts.Node): boolean {
 }
 
 export function findClosestNode(node: ts.Node, textSpan: ts.TextSpan): ts.Node | undefined {
-	let textSpanEnd = textSpan.start + textSpan.length;
+	const textSpanEnd = textSpan.start + textSpan.length;
 	function loop(node: ts.Node): ts.Node | undefined {
 		const length = node.end - node.pos;
 		if (node.pos === textSpan.start && length === textSpan.length) {
@@ -86,7 +86,7 @@ export function unescapeString(str: string): string {
 		const ch = str.charAt(i);
 		if (ch === '\\') {
 			if (i + 1 < str.length) {
-				let replace = unescapeMap[str.charAt(i + 1)];
+				const replace = unescapeMap[str.charAt(i + 1)];
 				if (replace !== undefined) {
 					result.push(replace);
 					i++;

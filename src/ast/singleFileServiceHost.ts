@@ -9,17 +9,17 @@ export class SingleFileServiceHost implements ts.LanguageServiceHost {
 		this.file = ts.ScriptSnapshot.fromString(contents);
 		this.lib = ts.ScriptSnapshot.fromString('');
 	}
-	readFile(_path: string, _encoding?: string | undefined): string | undefined {
+	readFile(): string | undefined {
 		return this.file.getText(0, this.file.getLength());
 	}
-	fileExists(_path: string): boolean {
+	fileExists(): boolean {
 		return true;
 	}
 
-	getCompilationSettings() { return this.options; }
-	getScriptFileNames() { return [this.filename];}
-	getScriptVersion() { return '1'; }
-	getScriptSnapshot = (name: string) => name === this.filename ? this.file : this.lib;
-	getCurrentDirectory = () => '';
-	getDefaultLibFileName = () => 'lib.d.ts';
+	getCompilationSettings(): ts.CompilerOptions { return this.options; }
+	getScriptFileNames(): string[] { return [this.filename];}
+	getScriptVersion(): string { return '1'; }
+	getScriptSnapshot(name: string): ts.IScriptSnapshot { return name === this.filename ? this.file : this.lib; }
+	getCurrentDirectory(): string { return ''; }
+	getDefaultLibFileName(): string { return 'lib.d.ts'; }
 }
