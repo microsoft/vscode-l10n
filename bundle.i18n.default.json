@@ -1,0 +1,15 @@
+{
+    "Code search is only supported on branches. [Learn More]({0})": {
+        "message": "Code search is only supported on branches. [Learn More]({0})",
+        "comment": [
+            "{Locked=\"]({0})\"}"
+        ]
+    },
+    "The current branch has not been configured for code search. [Learn More]({0})": {
+        "message": "The current branch has not been configured for code search. [Learn More]({0})",
+        "comment": [
+            "{Locked=\"]({0})\"}"
+        ]
+    },
+    "Search flags are not supported.": "Search flags are not supported."
+}

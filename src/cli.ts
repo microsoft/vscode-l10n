@@ -1,8 +1,9 @@
 import { readFileSync, writeFileSync } from "fs";
 import path from "path";
+import * as glob from 'glob';
 import { getI18nFilesFromXlf, getI18nJson, getI18nXlf } from "./main";
-import yargs from 'yargs'
-import { hideBin } from 'yargs/helpers'
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 import { i18nJsonFormat } from "./common";
 
 yargs(hideBin(process.argv))
@@ -73,11 +74,20 @@ yargs(hideBin(process.argv))
 	}, function (argv) {
 		i18nImportXlf(argv.xlfPath as string, argv.outDir as string);
 	})
-.help()
-.argv
+.help().argv;
 
-function i18nExportStrings(matches: string[], outDir: string): void {
-	const tsFileContents = matches.map(m => readFileSync(path.resolve(m), 'utf8'));
+function i18nExportStrings(patterns: string[], outDir: string): void {
+	const matches = patterns.map(p => glob.sync(p)).flat();
+	const tsFileContents = matches.reduce<string[]>((prev, curr) => {
+		if (curr.endsWith('.ts')) {
+			prev.push(readFileSync(path.resolve(curr), 'utf8'));
+		}
+		const results = glob.sync(path.join(curr, '**', '*.ts'));
+		for (const result of results) {
+			prev.push(readFileSync(path.resolve(result), 'utf8'));
+		}
+		return prev;
+	}, []);
 	const jsonResult = getI18nJson(tsFileContents);
 	const resolvedOutFile = path.resolve(path.join(outDir, 'bundle.i18n.default.json'));
 	writeFileSync(resolvedOutFile, JSON.stringify(jsonResult));

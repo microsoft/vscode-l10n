@@ -1,27 +1,13 @@
 import assert from 'assert';
-import { readFileSync } from 'fs';
-import path from 'path';
 import { getI18nJson, getI18nXlf } from "../main";
-import mock from 'mock-fs';
-
-mock({
-	mocked: {
-		'starSimple.ts': `
-			import * as vscode from "vscode";
-			vscode.env.i18n("Hello World");
-		`,
-		'namedSimple.ts': `
-			import { env } from "vscode";
-			env.i18n("Hello World");
-		`,
-	}
-});
 
 describe('main', () => {
 	context('getI18nJson', () => {
 		it('works', () => {
-			const fileContents = readFileSync(path.resolve(path.join('mocked', 'starSimple.ts')), 'utf8');
-			const result = getI18nJson([fileContents]);
+			const result = getI18nJson([`
+			import * as vscode from "vscode";
+			vscode.env.i18n("Hello World");
+		`]);
 			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World"}');
 		});
 	});
@@ -40,5 +26,3 @@ describe('main', () => {
 		});
 	});
 });
-
-mock.restore();

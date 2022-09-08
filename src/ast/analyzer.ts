@@ -35,19 +35,22 @@ export class JavaScriptAnalyzer {
                 }
                 if (ts.isVariableDeclaration(parent)) {
                     if (ts.isObjectBindingPattern(parent.name)) {
-                        const item = parent.name.elements.find(e => e.name.getText() === 'env');
+                        const item = parent.name.elements.find(e => e.name.getText() === 'env' || e.name.getText() === 'i18n');
                         if (item) {
-                            references = service.getReferencesAtPosition(filename, item.name.pos + 1);
+                            references = service.getReferencesAtPosition(filename, item.name.end);
                         }
                     } else {
-                        references = service.getReferencesAtPosition(filename, parent.name.pos + 1);
+                        references = service.getReferencesAtPosition(filename, parent.name.end);
                     }
                 }
             } else if (ts.isImportDeclaration(node)&& node.importClause && node.importClause.namedBindings) {
                 if (ts.isNamespaceImport(node.importClause.namedBindings)) {
-                    references = service.getReferencesAtPosition(filename, node.importClause.namedBindings.pos);
+                    references = service.getReferencesAtPosition(filename, node.importClause.namedBindings.end);
                 } else if (ts.isNamedImports(node.importClause.namedBindings)) {
-                    references = service.getReferencesAtPosition(filename, node.importClause.namedBindings.pos);
+                    const item = node.importClause.namedBindings.elements.find(e => e.name.getText() === 'env' || e.name.getText() === 'i18n');
+                    if (item) {
+                        references = service.getReferencesAtPosition(filename, item.end);
+                    }
                 }
             } else if (ts.isImportEqualsDeclaration(node)) {
                 references = service.getReferencesAtPosition(filename, node.name.pos);
@@ -91,6 +94,10 @@ export class JavaScriptAnalyzer {
             const expression = callExpresssionNode.expression;
             if (ts.isPropertyAccessExpression(expression)) {
                 if (expression.name.text === 'i18n') {
+                    memo.push(callExpresssionNode);
+                }
+            } else if (ts.isIdentifier(expression)) {
+                if (expression.text === 'i18n') {
                     memo.push(callExpresssionNode);
                 }
             }
