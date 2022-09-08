@@ -11,33 +11,13 @@ if (!watch) {
 	}).generate();
 }
 
-const sharedConfig = {
+esbuild.build({
 	entryPoints: ['src/main.ts'],
 	bundle: true,
 	watch,
 	sourcemap: watch,
 	external: Object.keys(dependencies ?? {}).concat(Object.keys(peerDependencies ?? {})),
-}
-
-esbuild.build({
-	...sharedConfig,
 	platform: 'node',
 	minify: false,
 	outfile: 'dist/main.js',
-}).catch(() => process.exit(1))
-
-esbuild.build({
-	...sharedConfig,
-	platform: 'neutral',
-	minify: !watch,
-	format: 'esm',
-	outfile: 'dist/main.esm.js',
-}).catch(() => process.exit(1))
-
-esbuild.build({
-	...sharedConfig,
-	entryPoints: ['src/cli.ts'],
-	minify: false,
-	platform: 'node',
-	outfile: 'dist/cli.js',
 }).catch(() => process.exit(1))

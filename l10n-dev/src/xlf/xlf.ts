@@ -1,6 +1,6 @@
 import * as xml2js from 'xml2js';
 import { Line } from "./line";
-import { i18nJsonDetails, i18nJsonFormat, MessageInfo } from "../common";
+import { l10nJsonDetails, l10nJsonFormat, MessageInfo } from "../common";
 
 interface Item {
 	id: string;
@@ -39,7 +39,7 @@ export class XLF {
 		return this.buffer.join('\r\n');
 	}
 
-	public addFile(key: 'bundle' | 'package', bundle: i18nJsonFormat): void {
+	public addFile(key: 'bundle' | 'package', bundle: l10nJsonFormat): void {
 		if (Object.keys(bundle).length === 0) {
 			return;
 		}
@@ -88,7 +88,7 @@ export class XLF {
 		this.buffer.push(line.toString());
 	}
 
-	static async parse(xlfString: string): Promise<i18nJsonDetails[]> {
+	static async parse(xlfString: string): Promise<l10nJsonDetails[]> {
 		const getValue = function (this: void, target: any): string | undefined {
 			if (typeof target === 'string') {
 				return target;
@@ -110,7 +110,7 @@ export class XLF {
 		};
 
 		const parser = new xml2js.Parser();
-		const files: i18nJsonDetails[] = [];
+		const files: l10nJsonDetails[] = [];
 		const result = await parser.parseStringPromise(xlfString);
 
 		const fileNodes: any[] = result['xliff']['file'];

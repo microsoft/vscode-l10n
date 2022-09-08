@@ -1,5 +1,6 @@
 import * as assert from 'assert';
-import { i18nJsonMessageFormat } from '../../common';
+import * as crypto from 'crypto';
+import { l10nJsonMessageFormat } from '../../common';
 import { JavaScriptAnalyzer } from '../analyzer';
 
 describe('JavaScriptAnalyzer', () => {
@@ -9,7 +10,7 @@ describe('JavaScriptAnalyzer', () => {
         const analyzer = new JavaScriptAnalyzer();
         const result = analyzer.analyze(`
             const vscode = require('vscode');
-            vscode.env.i18n('${basecaseText}');
+            vscode.l10n.t('${basecaseText}');
         `);
         assert.strictEqual(Object.keys(result.bundle).length, 1);
         assert.strictEqual(result.bundle[basecaseText], basecaseText);
@@ -18,8 +19,8 @@ describe('JavaScriptAnalyzer', () => {
     it('require basecase object binding', () => {
         const analyzer = new JavaScriptAnalyzer();
         const result = analyzer.analyze(`
-            const { env } = require('vscode');
-            env.i18n('${basecaseText}');
+            const { l10n } = require('vscode');
+            l10n.t('${basecaseText}');
         `);
         assert.strictEqual(Object.keys(result.bundle).length, 1);
         assert.strictEqual(result.bundle[basecaseText], basecaseText);
@@ -29,7 +30,7 @@ describe('JavaScriptAnalyzer', () => {
         const analyzer = new JavaScriptAnalyzer();
         const result = analyzer.analyze(`
             import * as vscode from 'vscode';
-            vscode.env.i18n('${basecaseText}');
+            vscode.l10n.t('${basecaseText}');
         `);
         assert.strictEqual(Object.keys(result.bundle).length, 1);
         assert.strictEqual(result.bundle[basecaseText], basecaseText);
@@ -38,8 +39,8 @@ describe('JavaScriptAnalyzer', () => {
     it('import basecase named imports', () => {
         const analyzer = new JavaScriptAnalyzer();
         const result = analyzer.analyze(`
-            import { env } from 'vscode';
-            env.i18n('${basecaseText}');
+            import { l10n } from 'vscode';
+            l10n.t('${basecaseText}');
         `);
         assert.strictEqual(Object.keys(result.bundle).length, 1);
         assert.strictEqual(result.bundle[basecaseText], basecaseText);
@@ -51,7 +52,7 @@ describe('JavaScriptAnalyzer', () => {
             import {
                 Command,
                 Disposable,
-                env,
+                l10n,
                 Event,
                 EventEmitter,
                 FilePermission,
@@ -65,7 +66,7 @@ describe('JavaScriptAnalyzer', () => {
                 workspace,
                 WorkspaceEdit,
             } from 'vscode';
-            env.i18n('${basecaseText}');
+            l10n.t('${basecaseText}');
         `);
         assert.strictEqual(Object.keys(result.bundle).length, 1);
         assert.strictEqual(result.bundle[basecaseText], basecaseText);
@@ -74,33 +75,48 @@ describe('JavaScriptAnalyzer', () => {
     it('with comments', () => {
         const analyzer = new JavaScriptAnalyzer();
         const comment = 'This is a comment';
+        const combineComments = crypto.createHash('sha256');
+        combineComments.update(comment);
+        const key = `${basecaseText}/${combineComments.digest('hex')}`;
         const result = analyzer.analyze(`
-            import { env } from 'vscode';
-            env.i18n(['${comment}'], '${basecaseText}', 'this is an arg');
+            import { l10n } from 'vscode';
+            l10n.t({
+                message: '${basecaseText}',
+                comment: ['${comment}'],
+                args: ['this is an arg']
+            });
         `);
         assert.strictEqual(Object.keys(result.bundle).length, 1);
-        assert.strictEqual((result.bundle[basecaseText]! as i18nJsonMessageFormat).message, basecaseText);
-        assert.strictEqual((result.bundle[basecaseText]! as i18nJsonMessageFormat).comment.length, 1);
-        assert.strictEqual((result.bundle[basecaseText]! as i18nJsonMessageFormat).comment[0], comment);
+        assert.strictEqual((result.bundle[key]! as l10nJsonMessageFormat).message, basecaseText);
+        assert.strictEqual((result.bundle[key]! as l10nJsonMessageFormat).comment.length, 1);
+        assert.strictEqual((result.bundle[key]! as l10nJsonMessageFormat).comment[0], comment);
     });
 
-    it('vscode-i18n basecase', () => {
+    it('vscode-l10n basecase', () => {
         const analyzer = new JavaScriptAnalyzer();
         const result = analyzer.analyze(`
-            import * as vscodei18n from 'vscode-i18n';
-            vscodei18n.i18n('${basecaseText}');
+            import * as l10n from 'vscode-l10n';
+            l10n.t('${basecaseText}');
         `);
         assert.strictEqual(Object.keys(result.bundle).length, 1);
         assert.strictEqual(result.bundle[basecaseText], basecaseText);
     });
 
-    it('vscode-i18n named imports', () => {
+    it('vscode-l10n does not pickup config calls', () => {
         const analyzer = new JavaScriptAnalyzer();
         const result = analyzer.analyze(`
-            import { i18n } from 'vscode-i18n';
-            i18n('${basecaseText}');
+            import * as l10n from 'vscode-l10n';
+            l10n.config({});
         `);
-        assert.strictEqual(Object.keys(result.bundle).length, 1);
-        assert.strictEqual(result.bundle[basecaseText], basecaseText);
+        assert.strictEqual(Object.keys(result.bundle).length, 0);
+    });
+
+    it('does not count other t functions', () => {
+        const analyzer = new JavaScriptAnalyzer();
+        const result = analyzer.analyze(`
+            import * as i18next from 'i18next';
+            i18next.t('${basecaseText}');
+        `);
+        assert.strictEqual(Object.keys(result.bundle).length, 0);
     });
 });

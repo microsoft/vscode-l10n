@@ -1,5 +1,5 @@
 {
     "spec": "**/*.test.ts",
     "require": "ts-node/register",
-    "watch": "src/**/*.ts"
+    "watch": "l10n*/src/**/*.ts"
 }

@@ -3,19 +3,55 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "watch",
+			"script": "watch:l10n-dev",
 			"group": "build",
-			"problemMatcher": [],
-			"label": "npm: watch",
-			"detail": "node .esbuild.config.js --watch"
+			"problemMatcher": "$esbuild-watch",
+			"label": "l10n-dev: watch"
 		},
 		{
 			"type": "npm",
-			"script": "test",
+			"script": "test:l10n-dev",
 			"group": "test",
 			"problemMatcher": [],
-			"label": "npm: test",
-			"detail": "mocha"
-		}
+			"label": "l10n-dev: test"
+		},
+		{
+			"type": "npm",
+			"script": "watch:l10n",
+			"group": "build",
+			"problemMatcher": "$esbuild-watch",
+			"label": "l10n: watch"
+		},
+		{
+			"type": "npm",
+			"script": "test:l10n",
+			"group": "test",
+			"problemMatcher": [],
+			"label": "l10n-dev: test"
+		},
+		{
+			"label": "npm: watch (all)",
+			"dependsOn": [
+				"l10n-dev: watch",
+				"l10n: watch"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "npm: test (all)",
+			"dependsOn": [
+				"l10n-dev: test",
+				"l10n: test"
+			],
+			"group": {
+				"kind": "test",
+				"isDefault": true
+			},
+			"problemMatcher": []
+		},
 	]
 }

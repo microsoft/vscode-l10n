@@ -1,11 +1,12 @@
+import * as crypto from 'crypto';
 import ts from "typescript";
-import { i18nJsonFormat } from "../common";
+import { l10nJsonFormat } from "../common";
 import { SingleFileServiceHost } from "./singleFileServiceHost";
 import { collect, isRequireImport, isImportNode, CollectStepResult, findClosestNode, unescapeString } from "./utils";
 
 export interface AnalysisResult {
 	errors: string[];
-	bundle: i18nJsonFormat;
+	bundle: l10nJsonFormat;
 }
 
 export class JavaScriptAnalyzer {
@@ -20,12 +21,12 @@ export class JavaScriptAnalyzer {
         const sourceFile = service.getProgram()!.getSourceFile(filename)!;
     
         const errors: string[] = [];
-        const bundle: i18nJsonFormat = {};
+        const bundle: l10nJsonFormat = {};
     
         // all imports
         const imports = collect(sourceFile, n => isRequireImport(n) || isImportNode(n) ? CollectStepResult.YesAndRecurse : CollectStepResult.NoAndRecurse);
-    
-        const vscodeOrEnvReferences = imports.reduce<ts.Node[]>((memo, node) => {
+
+        const vscodeOrL10nReferences = imports.reduce<ts.Node[]>((memo, node) => {
             let references: ts.ReferenceEntry[] | undefined;
     
             if (ts.isCallExpression(node)) {
@@ -35,7 +36,7 @@ export class JavaScriptAnalyzer {
                 }
                 if (ts.isVariableDeclaration(parent)) {
                     if (ts.isObjectBindingPattern(parent.name)) {
-                        const item = parent.name.elements.find(e => e.name.getText() === 'env' || e.name.getText() === 'i18n');
+                        const item = parent.name.elements.find(e => e.name.getText() === 'l10n');
                         if (item) {
                             references = service.getReferencesAtPosition(filename, item.name.end);
                         }
@@ -47,7 +48,7 @@ export class JavaScriptAnalyzer {
                 if (ts.isNamespaceImport(node.importClause.namedBindings)) {
                     references = service.getReferencesAtPosition(filename, node.importClause.namedBindings.end);
                 } else if (ts.isNamedImports(node.importClause.namedBindings)) {
-                    const item = node.importClause.namedBindings.elements.find(e => e.name.getText() === 'env' || e.name.getText() === 'i18n');
+                    const item = node.importClause.namedBindings.elements.find(e => e.name.getText() === 'l10n');
                     if (item) {
                         references = service.getReferencesAtPosition(filename, item.end);
                     }
@@ -70,7 +71,7 @@ export class JavaScriptAnalyzer {
             return memo;
         }, []);
     
-        const i18nCalls = vscodeOrEnvReferences.reduce<ts.CallExpression[]>((memo, node) => {
+        const tCalls = vscodeOrL10nReferences.reduce<ts.CallExpression[]>((memo, node) => {
     
             if (!ts.isIdentifier(node)) {
                 return memo;
@@ -93,46 +94,66 @@ export class JavaScriptAnalyzer {
 
             const expression = callExpresssionNode.expression;
             if (ts.isPropertyAccessExpression(expression)) {
-                if (expression.name.text === 'i18n') {
+                if (expression.name.text === 't') {
                     memo.push(callExpresssionNode);
                 }
             } else if (ts.isIdentifier(expression)) {
-                if (expression.text === 'i18n') {
+                if (expression.text === 't') {
                     memo.push(callExpresssionNode);
                 }
             }
             return memo;
         }, []);
     
-        i18nCalls.forEach((localizeCall) => {
+        tCalls.forEach((localizeCall) => {
             const firstArg = localizeCall.arguments[0]!;
-            const secondArg = localizeCall.arguments[1]!;
             let key: string | undefined;
+            let message: string | undefined;
             const comment: string[] = [];
             if (ts.isStringLiteralLike(firstArg)) {
                 const text = firstArg.getText();
                 key = text.substring(1, text.length - 1);
-            } else if (ts.isArrayLiteralExpression(firstArg)) {
-                firstArg.elements.forEach(element => {
-                    if (ts.isStringLiteralLike(element)) {
-                        const text = element.getText();
-                        comment.push(text.substring(1, text.length - 1));
-                    }
-                });
+                message = key;
+            } else if (ts.isObjectLiteralExpression(firstArg)) {
+                if (ts.isObjectLiteralElement(firstArg.properties[0]!)) {
+                    firstArg.properties.forEach((property) => {
+                        if (ts.isPropertyAssignment(property)) {
+                            switch(property.name.getText()) {
+                                case 'message':
+                                    if (ts.isStringLiteralLike(property.initializer)) {
+                                        const text = property.initializer.getText();
+                                        message = text.substring(1, text.length - 1);
+                                    }
+                                    break;
+                                case 'comment':
+                                    if (ts.isArrayLiteralExpression(property.initializer)) {
+                                        property.initializer.elements.forEach((element) => {
+                                            if (ts.isStringLiteralLike(element)) {
+                                                const text = element.getText();
+                                                comment.push(text.substring(1, text.length - 1));
+                                            }
+                                        });
+                                    }
+                                    break;
+                            }
+                        }
+                    });
 
-                if (ts.isStringLiteralLike(secondArg)) {
-                    const text = secondArg.getText();
-                    key = text.substring(1, text.length - 1);
+                    if (message) {
+                        const combineComments = crypto.createHash('md5');
+                        comment.forEach(c => combineComments.update(c));
+                        key = `${message}/${combineComments.digest('hex')}`;
+                    }
                 }
             }
             // TODO: better error handling
-            if (!key) {
+            if (!key || !message) {
                 const position = ts.getLineAndCharacterOfPosition(sourceFile, firstArg.pos);
-                errors.push(`(${position.line + 1},${position.character + 1}): first argument of an i18n call must either be a string literal or an string array literal.`);
+                errors.push(`(${position.line + 1},${position.character + 1}): first argument of an t() call must either be a string literal or an object literal with a message property`);
                 return;
             }
             const unescapedKey = unescapeString(key);
-            bundle[unescapedKey] = comment.length ? { message: unescapedKey, comment } : unescapedKey;
+            bundle[unescapedKey] = comment.length ? { message, comment } : unescapedKey;
         });
     
         return {
