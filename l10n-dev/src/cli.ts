@@ -37,7 +37,7 @@ yargs(hideBin(process.argv))
 			type: 'string',
 			array: true,
 			normalize: true,
-			describe: 'TypeScript files to extract strings from. Supports folders and glob patterns.'
+			describe: 'L10N JSON files to generate an XLF from. Supports folders and glob patterns.'
 		});
 		yargs.option('language', {
 			alias: 'l',
