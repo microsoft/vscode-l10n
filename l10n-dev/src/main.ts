@@ -28,13 +28,10 @@ export function getL10nJson(fileContents: string[]): l10nJsonFormat {
  * @param l10nBundleContents l10n bundle contents parsed
  * @returns XLF data as a string
  */
-export function getL10nXlf(packageNlsJsonContents?: l10nJsonFormat, l10nBundleContents?: l10nJsonFormat): string {
-	const xlf = new XLF();
-	if (packageNlsJsonContents) {
-		xlf.addFile('package', packageNlsJsonContents);
-	}
-	if (l10nBundleContents) {
-		xlf.addFile('bundle', l10nBundleContents);
+export function getL10nXlf(l10nFileContents: Map<string, l10nJsonFormat>, options?: { sourceLanguage?: string }): string {
+	const xlf = new XLF(options)
+	for (const [name, l10nBundle] of l10nFileContents) {
+		xlf.addFile(name, l10nBundle);
 	}
 	return xlf.toString();
 }

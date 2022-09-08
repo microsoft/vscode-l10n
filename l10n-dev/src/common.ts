@@ -14,6 +14,6 @@ export interface l10nJsonFormat {
 
 export interface l10nJsonDetails {
 	messages: l10nJsonFormat;
-	type: 'bundle' | 'package';
+	name: string;
 	language: string;
 }

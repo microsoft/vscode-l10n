@@ -140,7 +140,7 @@ export class JavaScriptAnalyzer {
                     });
 
                     if (message) {
-                        const combineComments = crypto.createHash('md5');
+                        const combineComments = crypto.createHash('sha256');
                         comment.forEach(c => combineComments.update(c));
                         key = `${message}/${combineComments.digest('hex')}`;
                     }

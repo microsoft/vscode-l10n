@@ -18,17 +18,19 @@ function getComment(value: MessageInfo): string[] | undefined {
 export class XLF {
 	private buffer: string[];
 	private files: { [key: string]: Item[] };
+	private sourceLanguage: string;
 
-	constructor() {
+	constructor(options?: { sourceLanguage?: string; }) {
 		this.buffer = [];
 		this.files = Object.create(null);
+		this.sourceLanguage = options?.sourceLanguage ?? 'en';
 	}
 
 	public toString(): string {
 		this.appendHeader();
 
 		for (const file in this.files) {
-			this.appendNewLine(`<file original="${file}" source-language="en" datatype="plaintext"><body>`, 2);
+			this.appendNewLine(`<file original="${file}" source-language="${this.sourceLanguage}" datatype="plaintext"><body>`, 2);
 			for (const item of this.files[file]!) {
 				this.addStringItem(item);
 			}
@@ -39,7 +41,7 @@ export class XLF {
 		return this.buffer.join('\r\n');
 	}
 
-	public addFile(key: 'bundle' | 'package', bundle: l10nJsonFormat): void {
+	public addFile(key: string, bundle: l10nJsonFormat): void {
 		if (Object.keys(bundle).length === 0) {
 			return;
 		}
@@ -64,7 +66,7 @@ export class XLF {
 		}
 
 		this.appendNewLine(`<trans-unit id="${item.id}">`, 4);
-		this.appendNewLine(`<source xml:lang="en">${item.message}</source>`, 6);
+		this.appendNewLine(`<source xml:lang="${this.sourceLanguage}">${item.message}</source>`, 6);
 
 		if (item.comment) {
 			this.appendNewLine(`<note>${item.comment}</note>`, 6);
@@ -145,7 +147,7 @@ export class XLF {
 					}
 				});
 
-				files.push({ messages, type, language });
+				files.push({ messages, name: type, language });
 			}
 		});
 
