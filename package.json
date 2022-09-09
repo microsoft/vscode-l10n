@@ -13,5 +13,10 @@
         "@types/mocha": "^9.1.1",
         "mocha": "^10.0.0",
         "ts-node": "^10.9.1"
+    },
+    "mocha": {
+        "spec": "**/*.test.ts",
+        "require": "ts-node/register",
+        "watch": "l10n*/src/**/*.ts"
     }
 }

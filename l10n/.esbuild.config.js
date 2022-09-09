@@ -18,6 +18,6 @@ esbuild.build({
 	sourcemap: watch,
 	external: Object.keys(dependencies ?? {}).concat(Object.keys(peerDependencies ?? {})),
 	platform: 'node',
-	minify: false,
+	minify: !watch,
 	outfile: 'dist/main.js',
 }).catch(() => process.exit(1))
