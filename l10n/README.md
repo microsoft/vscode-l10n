@@ -1,6 +1,6 @@
 # @vscode/l10n
 
-Library used for loading the translations into subprocesses of your extension.
+Library used for loading the translations into subprocesses of your extension. These usages also get picked up by [l10n-dev](../l10n-dev) string extraction tooling.
 
 > NOTE: You should _NOT_ use this library in your extension's main process. The translations are loaded into the main process by VS Code itself.
 
