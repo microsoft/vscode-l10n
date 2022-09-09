@@ -66,7 +66,8 @@ export function t(...args: [str: string, ...args: string[]] | [options: { messag
     } else {
         message = firstArg.message;
         key = message;
-        if (firstArg.comment) {
+        if (firstArg.comment && firstArg.comment.length > 0) {
+            // in the format: message/commentcommentcomment
             key += `/${firstArg.comment.join()}`;
         }
     }

@@ -146,6 +146,7 @@ export class JavaScriptAnalyzer {
                     if (message) {
                         key = message;
                         if (comment.length) {
+                            // in the format: message/commentcommentcomment
                             key += `/${comment.join()}`;
                         }
                     }
