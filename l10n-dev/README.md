@@ -25,7 +25,7 @@ npx @vscode/l10n-dev extract ./src
 
 #### Generating an XLF file
 
-If you find yourself needing to generate an XLF file, you can use the `generate-xlf` command. This command will generate an XLF file from the the strings in your `package.nls.json` and your newly extracted strings.
+If you find yourself needing to generate an XLF file, you can use the `generate-xlf` command. This command will generate an XLF file from the the strings in your `package.l10n.json` (`package.nls.json` is also supported) and your newly extracted strings.
 
 ```
 npx @vscode/l10n-dev generate-xlf ./package.l10n.json ./bundle.l10n.json --outFile vscode-git.xlf
