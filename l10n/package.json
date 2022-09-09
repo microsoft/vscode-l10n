@@ -36,6 +36,6 @@
 		"lint": "eslint src --ext ts",
 		"watch": "node .esbuild.config.js --watch",
 		"test": "mocha",
-		"prepublish": "npm run lint && npm run compile && npm run test"
+		"prepublishOnly": "npm run lint && npm run compile && npm run test"
 	}
 }
