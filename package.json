@@ -1,0 +1,17 @@
+{
+    "name": "remote-repositories",
+    "private": true,
+    "scripts": {
+        "postinstall": "npm run install:l10n && npm run install:l10n-dev",
+        "install:l10n": "cd l10n && npm install",
+        "install:l10n-dev": "cd l10n-dev && npm install",
+        "watch:l10n-dev": "cd l10n-dev && npm run watch",
+        "watch:l10n": "cd l10n-dev && npm run watch",
+        "test": "mocha"
+    },
+    "devDependencies": {
+        "@types/mocha": "^9.1.1",
+        "mocha": "^10.0.0",
+        "ts-node": "^10.9.1"
+    }
+}
