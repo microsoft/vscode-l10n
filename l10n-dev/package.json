@@ -1,15 +1,15 @@
 {
-	"name": "vscode-l10n-dev",
-	"version": "4.0.1",
+	"name": "@vscode/l10n-dev",
+	"version": "0.0.1",
 	"description": "Development time npm module to generate strings bundles from JavaScript files",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Microsoft/vscode-l10n-dev.git"
+		"url": "https://github.com/Microsoft/vscode-l10n.git"
 	},
 	"bugs": {
-		"url": "https://github.com/Microsoft/vscode-l10n-dev/issues"
+		"url": "https://github.com/Microsoft/vscode-l10n/issues"
 	},
 	"module": "dist/main.esm.js",
 	"main": "dist/main.js",
@@ -33,6 +33,7 @@
 		"eslint": "^7.29.0",
 		"mock-fs": "^5.1.4",
 		"npm-dts": "^1.3.12",
+		"rimraf": "^3.0.2",
 		"ts-node": "^10.9.1"
 	},
 	"dependencies": {
@@ -43,7 +44,7 @@
 		"yargs": "^17.5.1"
 	},
 	"scripts": {
-		"compile": "tsc -noEmit && node .esbuild.config.js",
+		"compile": "rimraf dist && tsc -noEmit && node .esbuild.config.js",
 		"lint": "eslint src --ext ts",
 		"watch": "node .esbuild.config.js --watch"
 	}
