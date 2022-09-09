@@ -1,7 +1,7 @@
 {
 	"name": "@vscode/l10n-dev",
 	"version": "0.0.1",
-	"description": "Development time npm module to generate strings bundles from JavaScript files",
+	"description": "Development time npm module to generate strings bundles from TypeScript files",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
 	"repository": {
@@ -11,7 +11,6 @@
 	"bugs": {
 		"url": "https://github.com/Microsoft/vscode-l10n/issues"
 	},
-	"module": "dist/main.esm.js",
 	"main": "dist/main.js",
 	"types": "dist/main.d.ts",
 	"files": [
