@@ -39,13 +39,6 @@ Promise.all([
 	}),
 	esbuild.build({
 		...sharedConfig,
-		platform: 'neutral',
-		minify: !watch,
-		format: 'esm',
-		outfile: 'dist/main.esm.js',
-	}),
-	esbuild.build({
-		...sharedConfig,
 		entryPoints: ['src/cli.ts'],
 		minify: false,
 		platform: 'node',

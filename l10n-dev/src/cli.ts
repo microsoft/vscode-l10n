@@ -39,17 +39,17 @@ yargs(hideBin(process.argv))
 			normalize: true,
 			describe: 'L10N JSON files to generate an XLF from. Supports folders and glob patterns.'
 		});
-		yargs.option('language', {
-			alias: 'l',
-			string: true,
-			default: 'en',
-			describe: 'The source language that will be written to the XLF file.'
-		});
 		yargs.option('outFile', {
 			demandOption: true,
 			string: true,
 			describe: 'Output file',
 			alias: 'o'
+		});
+		yargs.option('language', {
+			alias: 'l',
+			string: true,
+			default: 'en',
+			describe: 'The source language that will be written to the XLF file.'
 		});
 	}, function (argv) {
 		l10nGenerateXlf(argv.path as string[], argv.language as string, argv.outFile as string);

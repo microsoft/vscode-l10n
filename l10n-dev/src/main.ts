@@ -3,7 +3,7 @@ import { JavaScriptAnalyzer } from "./ast/analyzer";
 import { l10nJsonDetails, l10nJsonFormat } from './common';
 import { XLF } from "./xlf/xlf";
 
-export { l10nJsonDetails } from './common';
+export { l10nJsonDetails, l10nJsonFormat, MessageInfo, l10nJsonMessageFormat } from './common';
 
 const analyzer = new JavaScriptAnalyzer();
 
