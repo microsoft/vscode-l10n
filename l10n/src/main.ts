@@ -1,4 +1,8 @@
-import * as crypto from "crypto";
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { readFileSync } from "fs";
 
 export interface l10nJsonMessageFormat {
@@ -63,9 +67,7 @@ export function t(...args: [str: string, ...args: string[]] | [options: { messag
         message = firstArg.message;
         key = message;
         if (firstArg.comment) {
-            const combineComments = crypto.createHash('sha256');
-            firstArg.comment.forEach(comment => combineComments.update(comment));
-            key += `/${combineComments.digest('hex')}`;
+            key += `/${firstArg.comment.join()}`;
         }
     }
     if (!bundle) {

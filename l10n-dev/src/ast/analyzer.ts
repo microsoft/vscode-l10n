@@ -1,4 +1,8 @@
-import * as crypto from 'crypto';
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import ts from "typescript";
 import { l10nJsonFormat } from "../common";
 import { SingleFileServiceHost } from "./singleFileServiceHost";
@@ -140,9 +144,10 @@ export class JavaScriptAnalyzer {
                     });
 
                     if (message) {
-                        const combineComments = crypto.createHash('sha256');
-                        comment.forEach(c => combineComments.update(c));
-                        key = `${message}/${combineComments.digest('hex')}`;
+                        key = message;
+                        if (comment.length) {
+                            key += `/${comment.join()}`;
+                        }
                     }
                 }
             }

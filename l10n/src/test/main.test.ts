@@ -1,5 +1,9 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import assert from "assert";
-import * as crypto from "crypto";
 import importFresh from "import-fresh";
 import mock from "mock-fs";
 
@@ -45,9 +49,7 @@ describe('@vscode/l10n', () => {
         const comment = 'This is a comment';
         const result = 'translated message';
 
-        const combineComments = crypto.createHash('sha256');
-        combineComments.update(comment);
-        const key = `${message}/${combineComments.digest('hex')}`;
+        const key = `${message}/${comment}`;
 
         l10n.config({
             contents: {

@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import * as crypto from 'crypto';
 import { l10nJsonMessageFormat } from '../../common';
 import { JavaScriptAnalyzer } from '../analyzer';
 
@@ -75,9 +74,7 @@ describe('JavaScriptAnalyzer', () => {
     it('with comments', () => {
         const analyzer = new JavaScriptAnalyzer();
         const comment = 'This is a comment';
-        const combineComments = crypto.createHash('sha256');
-        combineComments.update(comment);
-        const key = `${basecaseText}/${combineComments.digest('hex')}`;
+        const key = `${basecaseText}/${comment}`;
         const result = analyzer.analyze(`
             import { l10n } from 'vscode';
             l10n.t({

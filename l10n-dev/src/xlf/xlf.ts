@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as xml2js from 'xml2js';
 import { Line } from "./line";
 import { l10nJsonDetails, l10nJsonFormat, MessageInfo } from "../common";

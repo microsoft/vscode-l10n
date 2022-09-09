@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import merge from 'deepmerge-json';
 import { JavaScriptAnalyzer } from "./ast/analyzer";
 import { l10nJsonDetails, l10nJsonFormat } from './common';
