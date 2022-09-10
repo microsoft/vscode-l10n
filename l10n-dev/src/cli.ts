@@ -160,7 +160,8 @@ async function l10nImportXlf(paths: string[], outDir: string): Promise<void> {
 		const details = await getL10nFilesFromXlf(xlfContents);
 		count += details.length;
 		for (const detail of details) {
-			writeFileSync(path.resolve(path.join(outDir, `${detail.name}.l10n.${detail.language}.json`)), JSON.stringify(detail.messages));
+			const type = detail.name === 'package' ? 'nls' : 'l10n';
+			writeFileSync(path.resolve(path.join(outDir, `${detail.name}.${type}.${detail.language}.json`)), JSON.stringify(detail.messages));
 		}
 	}
 	console.log(`Wrote ${count} localized L10N JSON files to: ${outDir}`);
