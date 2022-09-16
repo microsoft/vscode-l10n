@@ -95,8 +95,19 @@ function l10nExportStrings(paths: string[], outDir: string): void {
 		}
 		return prev;
 	}, []);
+
+	if (!tsFileContents.length) {
+		console.log('No TypeScript files found.');
+		return;
+	}
+
 	console.log(`Found ${tsFileContents.length} TypeScript files. Extracting strings...`);
 	const jsonResult = getL10nJson(tsFileContents);
+
+	if (!Object.keys(jsonResult).length) {
+		console.log('No strings found. Skipping writing to a bundle.l10n.json.');
+		return;
+	}
 	const resolvedOutFile = path.resolve(path.join(outDir, 'bundle.l10n.json'));
 	console.log(`Writing exported strings to: ${resolvedOutFile}`);
 	mkdirSync(path.resolve(outDir), { recursive: true });
@@ -130,7 +141,13 @@ function l10nGenerateXlf(paths: string[], language: string, outFile: string): vo
 		}
 		return prev;
 	}, new Map());
+
+	if (!l10nFileContents.size) {
+		console.log('No L10N JSON files found so skipping generating XLF.');
+		return;
+	}
 	console.log(`Found ${l10nFileContents.size} L10N JSON files. Generating XLF...`);
+
 	const result = getL10nXlf(l10nFileContents, { sourceLanguage: language });
 	writeFileSync(path.resolve(outFile), result);
 	console.log(`Wrote XLF file to: ${outFile}`);
@@ -149,6 +166,11 @@ async function l10nImportXlf(paths: string[], outDir: string): Promise<void> {
 		}
 		return prev;
 	}, []);
+
+	if (!xlfFiles.length) {
+		console.log('No XLF files found.');
+		return;
+	}
 
 	console.log(`Found ${xlfFiles.length} XLF files. Generating localized L10N JSON files...`);
 	let count = 0;
