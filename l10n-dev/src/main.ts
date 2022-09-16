@@ -47,5 +47,21 @@ export function getL10nXlf(l10nFileContents: Map<string, l10nJsonFormat>, option
  * @returns Array of l10nJsonDetails
  */
 export async function getL10nFilesFromXlf(xlfContents: string): Promise<l10nJsonDetails[]> {
-	return await XLF.parse(xlfContents);
+	const details = await XLF.parse(xlfContents);
+	details.forEach(detail => {
+		switch (detail.language) {
+			// Fix up the language codes for the languages we ship as language packs
+			case 'zh-hans':
+				// https://github.com/microsoft/vscode-loc/blob/ee1a0b34bb545253a8a28e6d21193052c478e32d/i18n/vscode-language-pack-zh-hans/package.json#L22
+				detail.language = 'zh-cn';
+				break;
+			case 'zh-hant':
+				// https://github.com/microsoft/vscode-loc/blob/ee1a0b34bb545253a8a28e6d21193052c478e32d/i18n/vscode-language-pack-zh-hant/package.json#L22
+				detail.language = 'zh-tw';
+				break;
+			default:
+				break;
+		}
+	});
+	return details;
 }
