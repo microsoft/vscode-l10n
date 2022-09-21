@@ -11,7 +11,6 @@ describe('JavaScriptAnalyzer', () => {
             const vscode = require('vscode');
             vscode.l10n.t('${basecaseText}');
         `);
-        assert.strictEqual(2, 1);
         assert.strictEqual(Object.keys(result.bundle).length, 1);
         assert.strictEqual(result.bundle[basecaseText], basecaseText);
     });
