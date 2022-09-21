@@ -70,7 +70,7 @@ export class XLF {
 			throw new Error('No item ID or value specified.');
 		}
 
-		this.appendNewLine(`<trans-unit id="${item.id}">`, 4);
+		this.appendNewLine(`<trans-unit id="${item.id.replace(/"/, '&quot;')}">`, 4);
 		this.appendNewLine(`<source xml:lang="${this.sourceLanguage}">${item.message}</source>`, 6);
 
 		if (item.comment) {
