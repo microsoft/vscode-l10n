@@ -15,6 +15,17 @@ describe('main', () => {
 		`]);
 			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World"}');
 		});
+
+		it('using a TS construct that could be confused as JS should also work fine', () => {
+			// The casting originally caused a problem where l10n calls after it would be ignored
+			// because we were analyzing JS as TS... now that we use file.ts in the analyzer, this
+			// issue goes away.
+			const result = getL10nJson([`import * as vscode from 'vscode';
+console.log(<any>"foo");
+vscode.l10n.t("Hello World");
+`]);
+			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World"}');
+		});
 	});
 
 	context('getL10nXlf', () => {

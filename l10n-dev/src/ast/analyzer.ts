@@ -17,9 +17,9 @@ export class JavaScriptAnalyzer {
     analyze(contents: string): AnalysisResult {
         const options: ts.CompilerOptions = {};
         options.noResolve = true;
-        options.allowJs = true;
-    
-        const filename = 'file.js';
+
+        // TODO: Support TSX files or maybe even JS and JSX files by passing the file extension to the service host
+        const filename = 'file.ts';
         const serviceHost = new SingleFileServiceHost(options, filename, contents);
         const service = ts.createLanguageService(serviceHost);
         const sourceFile = service.getProgram()!.getSourceFile(filename)!;
