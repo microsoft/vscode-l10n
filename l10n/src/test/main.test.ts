@@ -57,6 +57,16 @@ describe('@vscode/l10n', () => {
         }
     });
 
+    it('supports args', () => {
+        l10n.config({
+            contents: {
+                message: 'translated {0} message {1}'
+            }
+        });
+
+        assert.strictEqual(l10n.t("message", "foo", "bar"), "translated foo message bar");
+    });
+
     it('supports comments', () => {
         const message = 'message';
         const comment = 'This is a comment';
@@ -75,7 +85,28 @@ describe('@vscode/l10n', () => {
         assert.strictEqual(l10n.t({
             message,
             comment: [comment],
-            args: ['this is an arg']
+        }), result);
+    });
+
+    it('supports args and comments', () => {
+        const message = 'message {0}';
+        const comment = 'This is a comment';
+        const result = 'translated message foo';
+
+        const key = `${message}/${comment}`;
+
+        l10n.config({
+            contents: {
+                [key]: { message: 'translated message {0}', comment: [comment] }
+            }
+        });
+
+        // Normally we would be more static in the declaration of the object 
+        // in order to extract them properly but for tests we don't need to do that.
+        assert.strictEqual(l10n.t({
+            message,
+            comment: [comment],
+            args: ['foo']
         }), result);
     });
 });
