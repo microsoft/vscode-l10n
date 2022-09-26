@@ -1,6 +1,6 @@
 {
 	"name": "@vscode/l10n",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "A helper library to assist in localizing subprocesses spun up by VS Code extensions",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
@@ -11,7 +11,7 @@
 	"bugs": {
 		"url": "https://github.com/Microsoft/vscode-l10n/issues"
 	},
-	"main": "main.js",
+	"main": "dist/main.js",
 	"types": "dist/main.d.ts",
 	"files": [
 		"dist/*"

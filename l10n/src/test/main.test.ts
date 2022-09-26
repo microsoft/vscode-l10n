@@ -32,10 +32,23 @@ describe('@vscode/l10n', () => {
 
     it('load from uri', () => {
         mock({
-            'mock-bundle.json': `{ "message": "translated message" }`
+            '/mock-bundle.json': `{ "message": "translated message" }`
+        });
+        l10n.config({ uri: new URL('file:///mock-bundle.json') });
+
+        try {
+            assert.strictEqual(l10n.t("message"), "translated message");
+        } finally {
+            mock.restore();
+        }
+    });
+
+    it('load from uri as string', () => {
+        mock({
+            '/mock-bundle.json': `{ "message": "translated message" }`
         });
         l10n.config({
-            uri: 'mock-bundle.json'
+            uri: new URL('file:///mock-bundle.json').toString()
         });
         try {
             assert.strictEqual(l10n.t("message"), "translated message");

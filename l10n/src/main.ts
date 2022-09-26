@@ -18,7 +18,7 @@ export interface l10nJsonFormat {
 
 let bundle: l10nJsonFormat | undefined;
 
-export function config(config: { uri: string; } | { contents: string | l10nJsonFormat }): void {
+export function config(config: { uri: string | URL; } | { contents: string | l10nJsonFormat }): void {
     if ('contents' in config) {
         if (typeof config.contents === 'string') {
             bundle = JSON.parse(config.contents);
@@ -28,7 +28,11 @@ export function config(config: { uri: string; } | { contents: string | l10nJsonF
         return;
     }
     if(config.uri) {
-        bundle = JSON.parse(readFileSync(config.uri, 'utf8'));
+        let uri = config.uri;
+        if (typeof config.uri === 'string' && config.uri.startsWith('file://')) {
+            uri = new URL(config.uri);
+        }
+        bundle = JSON.parse(readFileSync(uri, 'utf8'));
     }
 }
 
