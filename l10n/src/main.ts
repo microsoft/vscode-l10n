@@ -36,26 +36,24 @@ export function config(config: { uri: string | URL; } | { contents: string | l10
     }
 }
 
-function format(message: string, args: any[]): string {
-    let result: string;
-    if (args.length === 0) {
-        result = message;
-    }
-    else {
-        result = message.replace(/\{(\d+)\}/g, (match, rest) => {
-            const index = rest[0];
-            const arg = args[index];
-            let replacement = match;
-            if (typeof arg === 'string') {
-                replacement = arg;
-            }
-            else if (typeof arg === 'number' || typeof arg === 'boolean' || arg === void 0 || arg === null) {
-                replacement = String(arg);
-            }
-            return replacement;
-        });
-    }
-    return result;
+const _formatRegexp = /{(\d+)}/g;
+
+/**
+ * Helper to produce a string with a variable number of arguments. Insert variable segments
+ * into the string using the {n} notation where N is the index of the argument following the string.
+ * @param value string to which formatting is applied
+ * @param args replacements for {n}-entries
+ */
+function format(value: string, ...args: any[]): string {
+	if (args.length === 0) {
+		return value;
+	}
+	return value.replace(_formatRegexp, function (match, group) {
+		const idx = parseInt(group, 10);
+		return isNaN(idx) || idx < 0 || idx >= args.length ?
+			match :
+			args[idx];
+	});
 }
 
 export function t(str: string, ...args: any[]): string;
@@ -64,9 +62,12 @@ export function t(...args: [str: string, ...args: string[]] | [options: { messag
     const firstArg = args[0];
     let key: string;
     let message: string;
+    let formatArgs: any[] | undefined;
     if (typeof firstArg === 'string') {
         key = firstArg;
         message = firstArg;
+        args.splice(0, 1);
+        formatArgs = args;
     } else {
         message = firstArg.message;
         key = message;
@@ -74,22 +75,23 @@ export function t(...args: [str: string, ...args: string[]] | [options: { messag
             // in the format: message/commentcommentcomment
             key += `/${firstArg.comment.join()}`;
         }
+        formatArgs = firstArg.args as any[] ?? [];
     }
     if (!bundle) {
-        return format(message, args);
+        return format(message, ...formatArgs);
     }
 
     const messageFromBundle = bundle[key];
     if (!messageFromBundle) {
-        return format(message, args);
+        return format(message, ...formatArgs);
     }
 
     if (typeof messageFromBundle === 'string') {
-        return format(messageFromBundle, args);
+        return format(messageFromBundle, ...formatArgs);
     }
     
     if (messageFromBundle.comment) {
-        return format(messageFromBundle.message, args);
+        return format(messageFromBundle.message, ...formatArgs);
     }
-    return format(message, args);
+    return format(message, ...formatArgs);
 }
