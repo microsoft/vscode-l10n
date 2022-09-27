@@ -13,6 +13,7 @@ import { hideBin } from 'yargs/helpers';
 import { l10nJsonFormat } from "./common";
 
 yargs(hideBin(process.argv))
+.scriptName("vscode-l10n-dev")
 .usage('$0 <cmd> [args]')
 .command(
 	'export [args] <path..>',
@@ -84,12 +85,12 @@ yargs(hideBin(process.argv))
 
 function l10nExportStrings(paths: string[], outDir: string): void {
 	console.log('Searching for TypeScript files...');
-	const matches = paths.map(p => glob.sync(p)).flat();
+	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
 	const tsFileContents = matches.reduce<string[]>((prev, curr) => {
 		if (curr.endsWith('.ts')) {
 			prev.push(readFileSync(path.resolve(curr), 'utf8'));
 		}
-		const results = glob.sync(path.join(curr, `{,!(node_modules)/**}`, '*.ts'));
+		const results = glob.sync(path.posix.join(curr, `{,!(node_modules)/**}`, '*.ts'));
 		for (const result of results) {
 			prev.push(readFileSync(path.resolve(result), 'utf8'));
 		}
@@ -116,7 +117,7 @@ function l10nExportStrings(paths: string[], outDir: string): void {
 
 function l10nGenerateXlf(paths: string[], language: string, outFile: string): void {
 	console.log('Searching for L10N JSON files...');
-	const matches = paths.map(p => glob.sync(p)).flat();
+	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
 	const l10nFileContents = matches.reduce<Map<string, l10nJsonFormat>>((prev, curr) => {
 		if (curr.endsWith('.l10n.json')) {
 			const name = path.basename(curr).split('.l10n.json')[0] ?? '';
@@ -127,7 +128,7 @@ function l10nGenerateXlf(paths: string[], language: string, outFile: string): vo
 			prev.set('package', JSON.parse(readFileSync(path.resolve(curr), 'utf8')));
 			return prev;
 		}
-		const results = glob.sync(path.join(curr, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
+		const results = glob.sync(path.posix.join(curr, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
 		for (const result of results) {
 			if (result.endsWith('.l10n.json')) {
 				const name = path.basename(curr).split('.l10n.json')[0] ?? '';
@@ -155,12 +156,12 @@ function l10nGenerateXlf(paths: string[], language: string, outFile: string): vo
 
 async function l10nImportXlf(paths: string[], outDir: string): Promise<void> {
 	console.log('Searching for XLF files...');
-	const matches = paths.map(p => glob.sync(p)).flat();
+	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
 	const xlfFiles = matches.reduce<string[]>((prev, curr) => {
 		if (curr.endsWith('.xlf')) {
 			prev.push(readFileSync(path.resolve(curr), 'utf8'));
 		}
-		const results = glob.sync(path.join(curr, `{,!(node_modules)/**}`, '*.xlf'));
+		const results = glob.sync(path.posix.join(curr, `{,!(node_modules)/**}`, '*.xlf'));
 		for (const result of results) {
 			prev.push(readFileSync(path.resolve(result), 'utf8'));
 		}
@@ -188,4 +189,8 @@ async function l10nImportXlf(paths: string[], outDir: string): Promise<void> {
 		}
 	}
 	console.log(`Wrote ${count} localized L10N JSON files to: ${outDir}`);
+}
+
+function toPosixPath(pathToConvert: string): string {
+	return pathToConvert.split(path.win32.sep).join(path.posix.sep);
 }
