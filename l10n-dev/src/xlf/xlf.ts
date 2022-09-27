@@ -70,7 +70,7 @@ export class XLF {
 			throw new Error('No item ID or value specified.');
 		}
 
-		this.appendNewLine(`<trans-unit id="${item.id.replace(/"/g, '&quot;')}">`, 4);
+		this.appendNewLine(`<trans-unit id="${encodeEntities(item.id)}">`, 4);
 		this.appendNewLine(`<source xml:lang="${this.sourceLanguage}">${item.message}</source>`, 6);
 
 		if (item.comment) {
@@ -165,6 +165,12 @@ function encodeEntities(value: string): string {
 	for (let i = 0; i < value.length; i++) {
 		const ch = value[i]!;
 		switch (ch) {
+			case '"':
+				result.push('&quot;');
+				break;
+			case "'":
+				result.push('&apos;');
+				break;
 			case '<':
 				result.push('&lt;');
 				break;
@@ -182,5 +188,10 @@ function encodeEntities(value: string): string {
 }
 
 function decodeEntities(value: string): string {
-	return value.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+	return value
+		.replace(/&quot;/g, '"')
+		.replace(/&apos;/g, "'")
+		.replace(/&lt;/g, '<')
+		.replace(/&gt;/g, '>')
+		.replace(/&amp;/g, '&');
 }
