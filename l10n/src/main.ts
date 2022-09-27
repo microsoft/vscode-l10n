@@ -43,6 +43,8 @@ const _formatRegexp = /{(\d+)}/g;
  * into the string using the {n} notation where N is the index of the argument following the string.
  * @param value string to which formatting is applied
  * @param args replacements for {n}-entries
+ * 
+ * Copied from https://github.com/microsoft/vscode/blob/4f26134e3bdf7830921f6a9d75a653bfecb72b45/src/vs/base/common/strings.ts#L18-L36
  */
 function format(value: string, ...args: any[]): string {
 	if (args.length === 0) {

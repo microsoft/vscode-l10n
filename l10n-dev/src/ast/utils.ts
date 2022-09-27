@@ -31,7 +31,7 @@ export function collect(node: ts.Node, fn: (node: ts.Node) => CollectStepResult)
 	return result;
 }
 
-const vscodeRegExp = /^\s*(["'])vscode(-l10n)?\1\s*$/;
+const vscodeRegExp = /^\s*(["'])(vscode|@vscode\/l10n)\1\s*$/;
 
 export function isImportNode(node: ts.Node): boolean {
 	if (ts.isImportDeclaration(node)) {

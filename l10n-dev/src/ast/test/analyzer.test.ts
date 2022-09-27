@@ -89,20 +89,20 @@ describe('JavaScriptAnalyzer', () => {
         assert.strictEqual((result.bundle[key]! as l10nJsonMessageFormat).comment[0], comment);
     });
 
-    it('vscode-l10n basecase', () => {
+    it('@vscode/l10n basecase', () => {
         const analyzer = new JavaScriptAnalyzer();
         const result = analyzer.analyze(`
-            import * as l10n from 'vscode-l10n';
+            import * as l10n from '@vscode/l10n';
             l10n.t('${basecaseText}');
         `);
         assert.strictEqual(Object.keys(result.bundle).length, 1);
         assert.strictEqual(result.bundle[basecaseText], basecaseText);
     });
 
-    it('vscode-l10n does not pickup config calls', () => {
+    it('@vscode/l10n does not pickup config calls', () => {
         const analyzer = new JavaScriptAnalyzer();
         const result = analyzer.analyze(`
-            import * as l10n from 'vscode-l10n';
+            import * as l10n from '@vscode/l10n';
             l10n.config({});
         `);
         assert.strictEqual(Object.keys(result.bundle).length, 0);
