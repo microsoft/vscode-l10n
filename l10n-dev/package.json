@@ -1,6 +1,6 @@
 {
 	"name": "@vscode/l10n-dev",
-	"version": "0.0.11",
+	"version": "0.0.12",
 	"description": "Development time npm module to generate strings bundles from TypeScript files",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
@@ -39,6 +39,7 @@
 	"dependencies": {
 		"deepmerge-json": "^1.5.0",
 		"glob": "^8.0.3",
+		"pseudo-localization": "^2.4.0",
 		"typescript": "^4.7.4",
 		"xml2js": "^0.4.23",
 		"yargs": "^17.5.1"

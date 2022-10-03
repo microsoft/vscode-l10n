@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import merge from 'deepmerge-json';
+import { localize } from 'pseudo-localization';
 import { JavaScriptAnalyzer } from "./ast/analyzer";
 import { l10nJsonDetails, l10nJsonFormat } from './common';
 import { XLF } from "./xlf/xlf";
@@ -64,4 +65,31 @@ export async function getL10nFilesFromXlf(xlfContents: string): Promise<l10nJson
 		}
 	});
 	return details;
+}
+
+/**
+ * Get pseudo localized l10n data for a given l10n bundle
+ * @param contents package.nls.json or bundle.l10n.json contents parsed
+ * @returns l10nJsonFormat
+ */
+export function getL10nPseudoLocalized(dataToLocalize: l10nJsonFormat): l10nJsonFormat {
+	// deep clone
+	const contents = JSON.parse(JSON.stringify(dataToLocalize));
+	for(const key of Object.keys(contents)) {
+		const value = contents[key];
+		const message = typeof value === 'string' ? value : value!.message;
+		let index = 0;
+		let localized = '';
+		// escape command and icon syntax
+		for (const match of message.matchAll(/(?:\(command:\S+)|(?:\$\([A-Za-z-~]+\))/g)) {
+			const section = localize(message.substring(index, match.index));
+			localized += section + match[0]!;
+			index = match.index! + match[0]!.length;
+		}
+
+		contents[key] = index === 0
+			? localize(message)
+			: localized + localize(message.substring(index));
+	}
+	return contents;
 }
