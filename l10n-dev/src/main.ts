@@ -67,7 +67,14 @@ export async function getL10nFilesFromXlf(xlfContents: string): Promise<l10nJson
 	return details;
 }
 
-export function getL10nPseudoLocalized(contents: l10nJsonFormat): l10nJsonFormat {
+/**
+ * Get pseudo localized l10n data for a given l10n bundle
+ * @param contents package.nls.json or bundle.l10n.json contents parsed
+ * @returns l10nJsonFormat
+ */
+export function getL10nPseudoLocalized(dataToLocalize: l10nJsonFormat): l10nJsonFormat {
+	// deep clone
+	const contents = JSON.parse(JSON.stringify(dataToLocalize));
 	for(const key of Object.keys(contents)) {
 		const value = contents[key];
 		const message = typeof value === 'string' ? value : value!.message;
