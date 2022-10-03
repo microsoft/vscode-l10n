@@ -100,10 +100,15 @@ vscode.l10n.t("Hello World");
 				'$(alert) Hello': '$(alert) Hello',
 				// command syntax should not be localized
 				'[hello](command:hello)': '[hello](command:hello)',
+				// supports long syntax
+				'Hello/Hello': {
+					message: 'Hello',
+					comment: ['Hello']
+				}
 			};
 
 			const result = getL10nPseudoLocalized(l10nContents);
-			assert.strictEqual(JSON.stringify(result), '{"Hello":"Ħḗḗŀŀǿǿ","$(alert) Hello":"$(alert) Ħḗḗŀŀǿǿ","[hello](command:hello)":"[ħḗḗŀŀǿǿ](command:hello)"}');
+			assert.strictEqual(JSON.stringify(result), '{"Hello":"Ħḗḗŀŀǿǿ","$(alert) Hello":"$(alert) Ħḗḗŀŀǿǿ","[hello](command:hello)":"[ħḗḗŀŀǿǿ](command:hello)","Hello/Hello":"Ħḗḗŀŀǿǿ"}');
 		});
 	});
 });
