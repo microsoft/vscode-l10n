@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { getL10nFilesFromXlf, getL10nJson, getL10nXlf } from "../main";
+import { getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf } from "../main";
 
 describe('main', () => {
 	context('getL10nJson', () => {
@@ -88,6 +88,22 @@ vscode.l10n.t("Hello World");
 			details = await getL10nFilesFromXlf(generateTextXLF('pt-BR'))
 			assert.strictEqual(details.length, 2);
 			assert.strictEqual(details[0]!.language, 'pt-br');
+		});
+	});
+
+	context('getL10nPseudoLocalized', () => {
+		it('works', () => {
+			const l10nContents = {
+				// base case
+				Hello: 'Hello',
+				// icon syntax should not be localized
+				'$(alert) Hello': '$(alert) Hello',
+				// command syntax should not be localized
+				'[hello](command:hello)': '[hello](command:hello)',
+			};
+
+			const result = getL10nPseudoLocalized(l10nContents);
+			assert.strictEqual(JSON.stringify(result), '{"Hello":"Ħḗḗŀŀǿǿ","$(alert) Hello":"$(alert) Ħḗḗŀŀǿǿ","[hello](command:hello)":"[ħḗḗŀŀǿǿ](command:hello)"}');
 		});
 	});
 });

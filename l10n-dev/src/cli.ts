@@ -7,7 +7,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import * as glob from 'glob';
-import { getL10nFilesFromXlf, getL10nJson, getL10nXlf } from "./main";
+import { getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf } from "./main";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { l10nJsonFormat } from "./common";
@@ -37,7 +37,7 @@ yargs(hideBin(process.argv))
 	})
 .command(
 	'generate-xlf [args] <path..>',
-	'Generate an XLF file from a collection of `*.l10n.json` files. Supports glob patterns.',
+	'Generate an XLF file from a collection of `*.l10n.json` or `package.nls.json` files. Supports glob patterns.',
 	yargs => {
 		yargs.positional('path', {
 			demandOption: true,
@@ -81,6 +81,26 @@ yargs(hideBin(process.argv))
 	}, function (argv) {
 		l10nImportXlf(argv.path as string[], argv.outDir as string);
 	})
+.command(
+	'generate-pseudo [args] <path..>',
+	'Generate Pseudo language files for `*.l10n.json` or `package.nls.json` files. This is useful for testing localization with the Pseudo Language Language Pack in VS Code.',
+	yargs => {
+		yargs.positional('path', {
+			demandOption: true,
+			type: 'string',
+			array: true,
+			normalize: true,
+			describe: 'L10N JSON files to generate an XLF from. Supports folders and glob patterns.'
+		});
+		yargs.option('language', {
+			alias: 'l',
+			string: true,
+			default: 'qps-ploc',
+			describe: 'The Pseudo language identifier that will be used.'
+		});
+	}, function (argv) {
+		l10nGeneratePseudo(argv.path as string[], argv.language as string);
+	})
 .help().argv;
 
 function l10nExportStrings(paths: string[], outDir: string): void {
@@ -119,16 +139,9 @@ function l10nGenerateXlf(paths: string[], language: string, outFile: string): vo
 	console.log('Searching for L10N JSON files...');
 	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
 	const l10nFileContents = matches.reduce<Map<string, l10nJsonFormat>>((prev, curr) => {
-		if (curr.endsWith('.l10n.json')) {
-			const name = path.basename(curr).split('.l10n.json')[0] ?? '';
-			prev.set(name, JSON.parse(readFileSync(path.resolve(curr), 'utf8')));
-			return prev;
-		}
-		if (curr.endsWith('package.nls.json')) {
-			prev.set('package', JSON.parse(readFileSync(path.resolve(curr), 'utf8')));
-			return prev;
-		}
-		const results = glob.sync(path.posix.join(curr, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
+		const results = curr.endsWith('.l10n.json') || curr.endsWith('package.nls.json')
+			? [curr]
+			: glob.sync(path.posix.join(curr, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
 		for (const result of results) {
 			if (result.endsWith('.l10n.json')) {
 				const name = path.basename(curr).split('.l10n.json')[0] ?? '';
@@ -193,4 +206,31 @@ async function l10nImportXlf(paths: string[], outDir: string): Promise<void> {
 
 function toPosixPath(pathToConvert: string): string {
 	return pathToConvert.split(path.win32.sep).join(path.posix.sep);
+}
+
+function l10nGeneratePseudo(paths: string[], language: string): void {
+	console.log('Searching for L10N JSON files...');
+	const matches = paths.map(p => glob.sync(p)).flat();
+	matches.forEach(curr => {
+		const results = curr.endsWith('.l10n.json') || curr.endsWith('package.nls.json')
+			? [curr]
+			: glob.sync(path.join(curr, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
+		for (const result of results) {
+			if (result.endsWith('.l10n.json')) {
+				const name = path.basename(curr).split('.l10n.json')[0] ?? '';
+				const contents = getL10nPseudoLocalized(JSON.parse(readFileSync(path.resolve(curr), 'utf8')));
+				writeFileSync(path.resolve(path.join(path.dirname(curr), `${name}.l10n.${language}.json`)), JSON.stringify(contents));
+			}
+			if (result.endsWith('package.nls.json')) {
+				const contents = getL10nPseudoLocalized(JSON.parse(readFileSync(path.resolve(curr), 'utf8')));
+				writeFileSync(path.resolve(path.join(path.dirname(curr), `package.nls.${language}.json`)), JSON.stringify(contents));
+			}
+		}
+	});
+
+	if (!matches.length) {
+		console.log('No L10N JSON files.');
+		return;
+	}
+	console.log(`Wrote ${matches.length} L10N JSON files.`);
 }
