@@ -204,17 +204,13 @@ async function l10nImportXlf(paths: string[], outDir: string): Promise<void> {
 	console.log(`Wrote ${count} localized L10N JSON files to: ${outDir}`);
 }
 
-function toPosixPath(pathToConvert: string): string {
-	return pathToConvert.split(path.win32.sep).join(path.posix.sep);
-}
-
 function l10nGeneratePseudo(paths: string[], language: string): void {
 	console.log('Searching for L10N JSON files...');
-	const matches = paths.map(p => glob.sync(p)).flat();
+	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
 	matches.forEach(curr => {
 		const results = curr.endsWith('.l10n.json') || curr.endsWith('package.nls.json')
 			? [curr]
-			: glob.sync(path.join(curr, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
+			: glob.sync(path.posix.join(curr, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
 		for (const result of results) {
 			if (result.endsWith('.l10n.json')) {
 				const name = path.basename(curr).split('.l10n.json')[0] ?? '';
@@ -233,4 +229,8 @@ function l10nGeneratePseudo(paths: string[], language: string): void {
 		return;
 	}
 	console.log(`Wrote ${matches.length} L10N JSON files.`);
+}
+
+function toPosixPath(pathToConvert: string): string {
+	return pathToConvert.split(path.win32.sep).join(path.posix.sep);
 }
