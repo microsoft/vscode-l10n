@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as xml2js from 'xml2js';
+import * as crypto from 'crypto';
 import { Line } from "./line";
 import { l10nJsonDetails, l10nJsonFormat, MessageInfo } from "../common";
 
@@ -18,6 +19,30 @@ function getMessage(value: MessageInfo): string {
 }
 function getComment(value: MessageInfo): string[] | undefined {
 	return typeof value === 'string' ? undefined : value.comment;
+}
+
+function getValue(node: any): string | undefined {
+	if (!node) {
+		return undefined;
+	}
+	if (typeof node === 'string') {
+		return node;
+	}
+	if (typeof node._ === 'string') {
+		return node._;
+	}
+
+	if (Array.isArray(node) && node.length === 1) {
+		const item = node[0];
+		if (typeof item === 'string') {
+			return item;
+		}
+		if (typeof item._ === 'string') {
+			return item._;
+		}
+		return node[0]._;
+	}
+	return undefined;
 }
 
 export class XLF {
@@ -70,7 +95,8 @@ export class XLF {
 			throw new Error('No item ID or value specified.');
 		}
 
-		this.appendNewLine(`<trans-unit id="${encodeEntities(item.id)}">`, 4);
+		const hashedId = crypto.createHash('sha256').update(item.id, 'binary').digest('hex');
+		this.appendNewLine(`<trans-unit id="${encodeEntities(hashedId)}">`, 4);
 		this.appendNewLine(`<source xml:lang="${this.sourceLanguage}">${item.message}</source>`, 6);
 
 		if (item.comment) {
@@ -96,26 +122,6 @@ export class XLF {
 	}
 
 	static async parse(xlfString: string): Promise<l10nJsonDetails[]> {
-		const getValue = function (this: void, target: any): string | undefined {
-			if (typeof target === 'string') {
-				return target;
-			}
-			if (typeof target._ === 'string') {
-				return target._;
-			}
-			if (Array.isArray(target) && target.length === 1) {
-				const item = target[0];
-				if (typeof item === 'string') {
-					return item;
-				}
-				if (typeof item._ === 'string') {
-					return item._;
-				}
-				return target[0]._;
-			}
-			return undefined;
-		};
-
 		const parser = new xml2js.Parser();
 		const files: l10nJsonDetails[] = [];
 		const result = await parser.parseStringPromise(xlfString);
@@ -139,17 +145,27 @@ export class XLF {
 			const transUnits = file.body[0]['trans-unit'];
 			if (transUnits) {
 				transUnits.forEach((unit: any) => {
-					const key = unit.$.id;
 					if (!unit.target) {
 						return; // No translation available
 					}
 
-					const val = getValue(unit.target);
-					if (key && val) {
-						messages[key] = decodeEntities(val);
-					} else {
-						throw new Error('XLIFF file does not contain full localization data. ID or target translation for one of the trans-unit nodes is not present.');
+					const source = getValue(unit.source);
+					if (!source) {
+						throw new Error('XLIFF file does not contain full localization data. source node in one of the trans-unit nodes is not present.');
 					}
+					const target = getValue(unit.target);
+					if (!target) {
+						throw new Error('XLIFF file does not contain full localization data. target node in one of the trans-unit nodes is not present.');
+					}
+
+					const note = getValue(unit.note);
+					let key = source;
+					if (note) {
+						key += '/' + note.split(/(\r\n|\n)/).join(''); // remove newlines
+					}
+
+					messages[key] = decodeEntities(target);
+					
 				});
 
 				files.push({ messages, name: type, language });
