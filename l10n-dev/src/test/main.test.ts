@@ -38,7 +38,7 @@ vscode.l10n.t("Hello World");
 				'Hello Universe': 'Hello Universe',
 			});
 			const xlf = getL10nXlf(map);
-			assert.strictEqual(xlf, '<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="a" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="Hello World">\r\n      <source xml:lang="en">Hello World</source>\r\n    </trans-unit>\r\n  </body></file>\r\n  <file original="b" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="Hello Universe">\r\n      <source xml:lang="en">Hello Universe</source>\r\n    </trans-unit>\r\n  </body></file>\r\n</xliff>');
+			assert.strictEqual(xlf, '<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="a" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e">\r\n      <source xml:lang="en">Hello World</source>\r\n    </trans-unit>\r\n  </body></file>\r\n  <file original="b" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="d73d0e9e4c117844d0621a950e8b65c635d023e12a5e6f80b89d077a6b14a71b">\r\n      <source xml:lang="en">Hello Universe</source>\r\n    </trans-unit>\r\n  </body></file>\r\n</xliff>');
 		});
 	});
 
@@ -49,7 +49,7 @@ vscode.l10n.t("Hello World");
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file original="package" source-language="en" datatype="plaintext" target-language="${language}">
     <body>
-      <trans-unit id="description">
+      <trans-unit id="185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969">
         <source xml:lang="en">Hello</source>
         <target state="new">World</target>
       </trans-unit>
@@ -72,10 +72,10 @@ vscode.l10n.t("Hello World");
 			assert.strictEqual(details.length, 2);
 			assert.strictEqual(details[0]!.name, 'package');
 			assert.strictEqual(details[0]!.language, 'de');
-			assert.strictEqual(details[0]!.messages['description'], 'World');
+			assert.strictEqual(details[0]!.messages['Hello'], 'World');
 			assert.strictEqual(details[1]!.name, 'bundle');
 			assert.strictEqual(details[1]!.language, 'de');
-			assert.strictEqual(details[1]!.messages['description'], 'World');
+			assert.strictEqual(details[1]!.messages['Hello'], 'World');
 		});
 
 		it('properly changes some of the languages based on VS Code language packs', async () => {
