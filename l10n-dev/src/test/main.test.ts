@@ -49,7 +49,7 @@ vscode.l10n.t("Hello World");
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
   <file original="package" source-language="en" datatype="plaintext" target-language="${language}">
     <body>
-      <trans-unit id="185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969">
+      <trans-unit id="id">
         <source xml:lang="en">Hello</source>
         <target state="new">World</target>
       </trans-unit>
@@ -72,7 +72,7 @@ vscode.l10n.t("Hello World");
 			assert.strictEqual(details.length, 2);
 			assert.strictEqual(details[0]!.name, 'package');
 			assert.strictEqual(details[0]!.language, 'de');
-			assert.strictEqual(details[0]!.messages['Hello'], 'World');
+			assert.strictEqual(details[0]!.messages['id'], 'World');
 			assert.strictEqual(details[1]!.name, 'bundle');
 			assert.strictEqual(details[1]!.language, 'de');
 			assert.strictEqual(details[1]!.messages['Hello'], 'World');
