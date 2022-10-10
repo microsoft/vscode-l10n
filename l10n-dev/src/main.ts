@@ -81,7 +81,7 @@ export function getL10nPseudoLocalized(dataToLocalize: l10nJsonFormat): l10nJson
 		let index = 0;
 		let localized = '';
 		// escape command and icon syntax
-		for (const match of message.matchAll(/(?:\(command:\S+)|(?:\$\([A-Za-z-~]+\))/g)) {
+		for (const match of message.matchAll(/(?:\(command:\S+)|(?:\$\([A-Za-z-~]+\))|(?:\{\S+\})/g)) {
 			const section = localize(message.substring(index, match.index));
 			localized += section + match[0]!;
 			index = match.index! + match[0]!.length;
