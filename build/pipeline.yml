@@ -43,6 +43,7 @@ extends:
             displayName: Test npm package
 
         publishPackage: ${{ parameters.publishPackage1 }}
+        workingDirectory: $(Build.SourcesDirectory)/l10n-dev
 
       - name: l10n
         dependsOn: l10n-dev
@@ -61,3 +62,4 @@ extends:
 
         publishDependsOn: ${{ parameters.publishPackage1 }}
         publishPackage: ${{ parameters.publishPackage2 }}
+        workingDirectory: $(Build.SourcesDirectory)/l10n
