@@ -29,6 +29,17 @@ extends:
   parameters:
     npmPackages:
       - name: l10n-dev
+
+        buildPlatforms:
+          - name: Linux
+            nodeVersions:
+              - 14.x
+              - 16.x
+          - name: Windows
+            nodeVersions:
+              - 14.x
+              - 16.x
+
         buildSteps:
           - script: npm ci
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
@@ -47,6 +58,17 @@ extends:
 
       - name: l10n
         dependsOn: l10n-dev
+
+        buildPlatforms:
+          - name: Linux
+            nodeVersions:
+              - 14.x
+              - 16.x
+          - name: Windows
+            nodeVersions:
+              - 14.x
+              - 16.x
+
         buildSteps:
           - script: npm ci
             workingDirectory: $(Build.SourcesDirectory)/l10n
