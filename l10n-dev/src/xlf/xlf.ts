@@ -62,7 +62,8 @@ export class XLF {
 		for (const file in this.files) {
 			this.appendNewLine(`<file original="${file}" source-language="${this.sourceLanguage}" datatype="plaintext"><body>`, 2);
 			for (const item of this.files[file]!) {
-				this.addStringItem(item);
+				// package.nls.json files use the id as it is defined by the user so we don't use a placeholder id in that case
+				this.addStringItem(item, file !== 'package');
 			}
 			this.appendNewLine('</body></file>', 2);
 		}
@@ -90,13 +91,13 @@ export class XLF {
 		}
 	}
 
-	private addStringItem(item: Item): void {
+	private addStringItem(item: Item, usePlaceholderId = true): void {
 		if (!item.id || !item.message) {
 			throw new Error('No item ID or value specified.');
 		}
 
-		const hashedId = crypto.createHash('sha256').update(item.id, 'binary').digest('hex');
-		this.appendNewLine(`<trans-unit id="${encodeEntities(hashedId)}">`, 4);
+		const id = usePlaceholderId ? crypto.createHash('sha256').update(item.id, 'binary').digest('hex') : item.id;
+		this.appendNewLine(`<trans-unit id="${encodeEntities(id)}">`, 4);
 		this.appendNewLine(`<source xml:lang="${this.sourceLanguage}">${item.message}</source>`, 6);
 
 		if (item.comment) {
@@ -149,23 +150,28 @@ export class XLF {
 						return; // No translation available
 					}
 
-					const source = getValue(unit.source);
-					if (!source) {
-						throw new Error('XLIFF file does not contain full localization data. source node in one of the trans-unit nodes is not present.');
-					}
 					const target = getValue(unit.target);
 					if (!target) {
 						throw new Error('XLIFF file does not contain full localization data. target node in one of the trans-unit nodes is not present.');
 					}
 
-					const note = getValue(unit.note);
-					let key = source;
-					if (note) {
-						key += '/' + note.split(/(\r\n|\n)/).join(''); // remove newlines
+					let key: string;
+					if (type === 'package') {
+						key = unit.$.id;
+					} else {
+						const source = getValue(unit.source);
+						if (!source) {
+							throw new Error('XLIFF file does not contain full localization data. source node in one of the trans-unit nodes is not present.');
+						}
+	
+						const note = getValue(unit.note);
+						key = source;
+						if (note) {
+							key += '/' + note.split(/(\r\n|\n)/).join(''); // remove newlines
+						}
 					}
 
 					messages[key] = decodeEntities(target);
-					
 				});
 
 				files.push({ messages, name: type, language });
