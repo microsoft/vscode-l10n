@@ -60,7 +60,7 @@ describe('@vscode/l10n', () => {
         }
     });
 
-    it('supports args', () => {
+    it('supports index args', () => {
         l10n.config({
             contents: {
                 message: 'translated {0} message {1}'
@@ -68,6 +68,16 @@ describe('@vscode/l10n', () => {
         });
 
         assert.strictEqual(l10n.t("message", "foo", "bar"), "translated foo message bar");
+    });
+
+    it('supports record args', () => {
+        l10n.config({
+            contents: {
+                message: 'translated {this} message {that}'
+            }
+        });
+
+        assert.strictEqual(l10n.t("message", { this: "foo", that: "bar" }), "translated foo message bar");
     });
 
     it('supports comments', () => {
@@ -91,7 +101,7 @@ describe('@vscode/l10n', () => {
         }), result);
     });
 
-    it('supports args and comments', () => {
+    it('supports index args and comments', () => {
         const message = 'message {0}';
         const comment = 'This is a comment';
         const result = 'translated message foo';
@@ -110,6 +120,28 @@ describe('@vscode/l10n', () => {
             message,
             comment: [comment],
             args: ['foo']
+        }), result);
+    });
+
+    it('supports object args and comments', () => {
+        const message = 'message {this}';
+        const comment = 'This is a comment';
+        const result = 'translated message foo';
+
+        const key = `${message}/${comment}`;
+
+        l10n.config({
+            contents: {
+                [key]: { message: 'translated message {this}', comment: [comment] }
+            }
+        });
+
+        // Normally we would be more static in the declaration of the object 
+        // in order to extract them properly but for tests we don't need to do that.
+        assert.strictEqual(l10n.t({
+            message,
+            comment: [comment],
+            args: { this: 'foo' }
         }), result);
     });
 });
