@@ -6,6 +6,7 @@
 import assert from "assert";
 import importFresh from "import-fresh";
 import mock from "mock-fs";
+import { platform } from "process";
 
 let l10n: typeof import("../main");
 
@@ -32,9 +33,10 @@ describe('@vscode/l10n', () => {
 
     it('load from uri', () => {
         mock({
-            '/mock-bundle.json': `{ "message": "translated message" }`
+            '/mock-bundle.json': `{ "message": "translated message" }`,
+            'C:\\mock-bundle.json': `{ "message": "translated message" }`
         });
-        l10n.config({ uri: new URL('file:///mock-bundle.json') });
+        l10n.config({ uri: new URL(platform === 'win32' ? 'file:///c:/mock-bundle.json' : 'file:///mock-bundle.json') });
 
         try {
             assert.strictEqual(l10n.t("message"), "translated message");
@@ -45,10 +47,11 @@ describe('@vscode/l10n', () => {
 
     it('load from uri as string', () => {
         mock({
-            '/mock-bundle.json': `{ "message": "translated message" }`
+            '/mock-bundle.json': `{ "message": "translated message" }`,
+            'C:\\mock-bundle.json': `{ "message": "translated message" }`
         });
         l10n.config({
-            uri: new URL('file:///mock-bundle.json').toString()
+            uri: new URL(platform === 'win32' ? 'file:///c:/mock-bundle.json' : 'file:///mock-bundle.json').toString()
         });
         try {
             assert.strictEqual(l10n.t("message"), "translated message");
