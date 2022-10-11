@@ -137,6 +137,9 @@ export class JavaScriptAnalyzer {
                                                 comment.push(text.substring(1, text.length - 1));
                                             }
                                         });
+                                    } else if (ts.isStringLiteralLike(property.initializer)) {
+                                        const text = property.initializer.getText();
+                                        comment.push(text.substring(1, text.length - 1));
                                     }
                                     break;
                             }

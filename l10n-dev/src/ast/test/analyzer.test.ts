@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import { l10nJsonMessageFormat } from '../../common';
 import { JavaScriptAnalyzer } from '../analyzer';
 
 describe('JavaScriptAnalyzer', () => {
@@ -71,7 +70,25 @@ describe('JavaScriptAnalyzer', () => {
         assert.strictEqual(result.bundle[basecaseText], basecaseText);
     });
 
-    it('with comments', () => {
+    it('with comment', () => {
+        const analyzer = new JavaScriptAnalyzer();
+        const comment = 'This is a comment';
+        const key = `${basecaseText}/${comment}`;
+        const result = analyzer.analyze(`
+            import { l10n } from 'vscode';
+            l10n.t({
+                message: '${basecaseText}',
+                comment: '${comment}',
+                args: ['this is an arg']
+            });
+        `);
+        assert.strictEqual(Object.keys(result.bundle).length, 1);
+        assert.strictEqual((result.bundle[key]! as { message: string }).message, basecaseText);
+        assert.strictEqual((result.bundle[key]! as { comment: string[] }).comment.length, 1);
+        assert.strictEqual((result.bundle[key]! as { comment: string[] }).comment[0], comment);
+    });
+
+    it('with comments as array', () => {
         const analyzer = new JavaScriptAnalyzer();
         const comment = 'This is a comment';
         const key = `${basecaseText}/${comment}`;
@@ -84,9 +101,9 @@ describe('JavaScriptAnalyzer', () => {
             });
         `);
         assert.strictEqual(Object.keys(result.bundle).length, 1);
-        assert.strictEqual((result.bundle[key]! as l10nJsonMessageFormat).message, basecaseText);
-        assert.strictEqual((result.bundle[key]! as l10nJsonMessageFormat).comment.length, 1);
-        assert.strictEqual((result.bundle[key]! as l10nJsonMessageFormat).comment[0], comment);
+        assert.strictEqual((result.bundle[key]! as { message: string }).message, basecaseText);
+        assert.strictEqual((result.bundle[key]! as { comment: string[] }).comment.length, 1);
+        assert.strictEqual((result.bundle[key]! as { comment: string[] }).comment[0], comment);
     });
 
     it('@vscode/l10n basecase', () => {

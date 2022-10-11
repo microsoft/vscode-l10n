@@ -1,17 +1,13 @@
 const esbuild = require('esbuild');
+const path = require('path');
+const { Extractor, ExtractorConfig } = require('@microsoft/api-extractor');
 const { dependencies, peerDependencies } = require('./package.json')
-const { Generator } = require('npm-dts');
 
 const watch = process.argv.includes('--watch');
+const type = watch ? 'watch' : 'compile';
 
-if (!watch) {
-	new Generator({
-		entry: 'main.ts',
-		output: 'dist/main.d.ts',
-	}).generate();
-}
-
-esbuild.build({
+console.log(`[${type}] build started`);
+esbuild.buildSync({
 	entryPoints: ['src/main.ts'],
 	bundle: true,
 	watch,
@@ -20,4 +16,18 @@ esbuild.build({
 	platform: 'node',
 	minify: !watch,
 	outfile: 'dist/main.js',
-}).catch(() => process.exit(1))
+});
+console.log(`[${type}] build finished`);
+
+if (watch) {
+	return;
+}
+
+console.log(`[${type}] generating types started`);
+const extractorResult = Extractor.invoke(ExtractorConfig.loadFileAndPrepare(path.join(__dirname, './api-extractor.json')));
+
+if (!extractorResult.succeeded) {
+	console.error(`API Extractor completed with ${extractorResult.errorCount} errors and ${extractorResult.warningCount} warnings`);
+	process.exit(1);
+}
+console.log(`[${type}] generating types finished`);
