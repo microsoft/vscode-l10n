@@ -6,6 +6,8 @@
 		"strict": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
+		"declaration": true,
+		"declarationMap": true,
 		"sourceMap": true,
 		"inlineSources": true,
 		"noUnusedLocals": true,

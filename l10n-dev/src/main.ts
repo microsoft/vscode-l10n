@@ -9,13 +9,25 @@ import { JavaScriptAnalyzer } from "./ast/analyzer";
 import { l10nJsonDetails, l10nJsonFormat } from './common';
 import { XLF } from "./xlf/xlf";
 
-export { l10nJsonDetails, l10nJsonFormat, MessageInfo, l10nJsonMessageFormat } from './common';
+export { l10nJsonDetails, l10nJsonFormat, l10nJsonMessageFormat } from './common';
 
 const analyzer = new JavaScriptAnalyzer();
 
 /**
+ * @public
+ * The options for the l10n JSON to XLF conversion.
+ */
+export interface L10nToXlfOptions {
+	/**
+	 * The language that the source is in. Defaults to `en`.
+	 */
+	sourceLanguage?: string;
+}
+
+/**
+ * @public
  * Export strings from source files
- * @param fileContents Array of file contents to analyze
+ * @param fileContents - Array of file contents to analyze
  * @returns l10nJsonFormat
  */
 export function getL10nJson(fileContents: string[]): l10nJsonFormat {
@@ -29,12 +41,13 @@ export function getL10nJson(fileContents: string[]): l10nJsonFormat {
 }
 
 /**
+ * @public
  * Get XLF data from a package.nls.json and computed l10n data
- * @param packageNlsJsonContents package.nls.json contents parsed
- * @param l10nBundleContents l10n bundle contents parsed
+ * @param l10nFileContents - a map of file names to {@link l10nJsonFormat} (basically the parsed contents of those files)
+ * @param options - {@link L10nToXlfOptions} that influence how the XLF file should be generated
  * @returns XLF data as a string
  */
-export function getL10nXlf(l10nFileContents: Map<string, l10nJsonFormat>, options?: { sourceLanguage?: string }): string {
+export function getL10nXlf(l10nFileContents: Map<string, l10nJsonFormat>, options?: L10nToXlfOptions): string {
 	const xlf = new XLF(options)
 	for (const [name, l10nBundle] of l10nFileContents) {
 		xlf.addFile(name, l10nBundle);
@@ -43,8 +56,9 @@ export function getL10nXlf(l10nFileContents: Map<string, l10nJsonFormat>, option
 }
 
 /**
+ * @public
  * Import XLF data into an array of l10nJsonDetails
- * @param xlfContents XLF data as a string
+ * @param xlfContents - XLF data as a string
  * @returns Array of l10nJsonDetails
  */
 export async function getL10nFilesFromXlf(xlfContents: string): Promise<l10nJsonDetails[]> {
@@ -68,8 +82,9 @@ export async function getL10nFilesFromXlf(xlfContents: string): Promise<l10nJson
 }
 
 /**
+ * @public
  * Get pseudo localized l10n data for a given l10n bundle
- * @param contents package.nls.json or bundle.l10n.json contents parsed
+ * @param dataToLocalize - package.nls.json or bundle.l10n.json contents parsed
  * @returns l10nJsonFormat
  */
 export function getL10nPseudoLocalized(dataToLocalize: l10nJsonFormat): l10nJsonFormat {

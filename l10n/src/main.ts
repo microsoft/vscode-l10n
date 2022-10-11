@@ -5,19 +5,31 @@
 
 import { readFileSync } from "fs";
 
-export interface l10nJsonMessageFormat {
+/**
+ * @public
+ * The format of a message in a bundle.
+ */
+
+ export type l10nJsonMessageFormat = string | {
 	message: string;
 	comment: string[];
-}
+};
 
-export type MessageInfo = string | l10nJsonMessageFormat;
-
+/**
+ * @public
+ * The format of package.nls.json and l10n bundle files.
+ */
 export interface l10nJsonFormat {
-	[key: string]: MessageInfo;
+	[key: string]: l10nJsonMessageFormat;
 }
 
 let bundle: l10nJsonFormat | undefined;
 
+/**
+ * @public
+ * Must be run as soon as possible. Loads the bundle from the given URI or contents.
+ * @param config - The uri or contents of the bundle.
+ */
 export function config(config: { uri: string | URL; } | { contents: string | l10nJsonFormat }): void {
     if ('contents' in config) {
         if (typeof config.contents === 'string') {
@@ -36,55 +48,43 @@ export function config(config: { uri: string | URL; } | { contents: string | l10
     }
 }
 
-const _format2Regexp = /{([^}]+)}/g;
-
 /**
- * Helper to create a string from a template and a string record.
- * Similar to `format` but with objects instead of positional arguments.
- * 
- * Copied from https://github.com/microsoft/vscode/blob/5dfca53892a1061b1c103542afe49d51f1041778/src/vs/base/common/strings.ts#L44
- */
-export function format(template: string, values: Record<string, unknown>): string {
-	return template.replace(_format2Regexp, (match, group) => (values[group] ?? match) as string);
-}
-
-/**
- * Marks a string for localization. If a localized bundle is available for the language specified by
- * {@link env.language} and the bundle has a localized value for this message, then that localized
- * value will be returned (with injected {@link args} values for any templated values).
- * @param message The message to localize. Supports index templating where strings like {0} and {1} are
- * replaced by the item at that index in the {@link args} array.
- * @param args The arguments to be used in the localized string. The index of the argument is used to
+ * @public
+ * Marks a string for localization. If the bundle has a localized value for this message, then that localized
+ * value will be returned (with injected `args` values for any templated values).
+ * @param message - The message to localize. Supports index templating where strings like `{0}` and `{1}` are
+ * replaced by the item at that index in the `args` array.
+ * @param args - The arguments to be used in the localized string. The index of the argument is used to
  * match the template placeholder in the localized string.
  * @returns localized string with injected arguments.
- * @example l10n.localize('hello', 'Hello {0}!', 'World');
+ * @example `l10n.localize('hello', 'Hello {0}!', 'World');`
  */
 export function t(message: string, ...args: Array<string | number>): string;
 /**
- * Marks a string for localization. If a localized bundle is available for the language specified by
- * {@link env.language} and the bundle has a localized value for this message, then that localized
- * value will be returned (with injected {@link args} values for any templated values).
- * @param message The message to localize. Supports named templating where strings like {foo} and {bar} are
+ * @public
+ * Marks a string for localization. If the bundle has a localized value for this message, then that localized
+ * value will be returned (with injected `args` values for any templated values).
+ * @param message - The message to localize. Supports named templating where strings like `{foo}` and `{bar}` are
  * replaced by the value in the Record for that key (foo, bar, etc).
- * @param args The arguments to be used in the localized string. The name of the key in the record is used to
+ * @param args - The arguments to be used in the localized string. The name of the key in the record is used to
  * match the template placeholder in the localized string.
  * @returns localized string with injected arguments.
- * @example l10n.t('Hello {name}', { name: 'Erich' });
+ * @example `l10n.t('Hello {name}', { name: 'Erich' });`
  */
 export function t(message: string, args: Record<string, any>): string;
 
 /**
- * Marks a string for localization. If a localized bundle is available for the language specified by
- * {@link env.language} and the bundle has a localized value for this message, then that localized
+ * @public
+ * Marks a string for localization. If the bundle has a localized value for this message, then that localized
  * value will be returned (with injected args values for any templated values).
- * @param options The options to use when localizing the message.
+ * @param options - The options to use when localizing the message.
  * @returns localized string with injected arguments.
  */
 export function t(options: {
     /**
-     * The message to localize. If {@link args} is an array, this message supports index templating where strings like
-     * {0} and {1} are replaced by the item at that index in the {@link args} array. If args is a Record<string, any>,
-     * this supports named templating where strings like {foo} and {bar} are replaced by the value in
+     * The message to localize. If `args` is an array, this message supports index templating where strings like
+     * `{0}` and `{1}` are replaced by the item at that index in the `args` array. If `args` is a `Record<string, any>`,
+     * this supports named templating where strings like `{foo}` and `{bar}` are replaced by the value in
      * the Record for that key (foo, bar, etc).
      */
     message: string;
@@ -135,4 +135,16 @@ export function t(...args: [str: string, ...args: Array<string | number>] | [mes
         return format(messageFromBundle.message, formatArgs as Record<string, unknown>);
     }
     return format(message, formatArgs as Record<string, unknown>);
+}
+
+const _format2Regexp = /{([^}]+)}/g;
+
+/**
+ * Helper to create a string from a template and a string record.
+ * Similar to `format` but with objects instead of positional arguments.
+ * 
+ * Copied from https://github.com/microsoft/vscode/blob/5dfca53892a1061b1c103542afe49d51f1041778/src/vs/base/common/strings.ts#L44
+ */
+function format(template: string, values: Record<string, unknown>): string {
+	return template.replace(_format2Regexp, (match, group) => (values[group] ?? match) as string);
 }

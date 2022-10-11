@@ -1,16 +1,10 @@
 const esbuild = require('esbuild');
+const path = require('path');
+const { Extractor, ExtractorConfig } = require('@microsoft/api-extractor');
 const { dependencies, peerDependencies } = require('./package.json')
-const { Generator } = require('npm-dts');
 
 const watch = process.argv.includes('--watch');
 const type = watch ? 'watch' : 'compile';
-
-if (!watch) {
-	new Generator({
-		entry: 'main.ts',
-		output: 'dist/main.d.ts',
-	}).generate();
-}
 
 const sharedConfig = {
 	bundle: true,
@@ -28,9 +22,9 @@ const sharedConfig = {
 	platform: 'node',
 	minify: false,
 	external: Object.keys(dependencies ?? {}).concat(Object.keys(peerDependencies ?? {})),
-}
+};
 
-console.log(`[${type}] build started`)
+console.log(`[${type}] build started`);
 
 Promise.all([
 	esbuild.build({
@@ -42,7 +36,23 @@ Promise.all([
 		...sharedConfig,
 		entryPoints: ['src/cli.ts'],
 		outfile: 'dist/cli.js',
+		banner: { js: '#!/usr/bin/env node' }, 
 	})
 ])
-.then(() => { console.log(`[${type}] build finished`)})
-.catch(() => process.exit(1))
+.then(() => {
+	console.log(`[${type}] build finished`);
+	// no need to generate types for watch mode
+	if (watch) {
+		return;
+	}
+
+	console.log(`[${type}] generating types started`);
+	const extractorResult = Extractor.invoke(ExtractorConfig.loadFileAndPrepare(path.join(__dirname, './api-extractor.json')));
+
+	if (!extractorResult.succeeded) {
+		console.error(`API Extractor completed with ${extractorResult.errorCount} errors and ${extractorResult.warningCount} warnings`);
+		process.exit(1);
+	}
+	console.log(`[${type}] generating types finished`);
+})
+.catch(() => process.exit(1));
