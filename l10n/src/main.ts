@@ -59,7 +59,7 @@ export function config(config: { uri: string | URL; } | { contents: string | l10
  * @returns localized string with injected arguments.
  * @example `l10n.localize('hello', 'Hello {0}!', 'World');`
  */
-export function t(message: string, ...args: Array<string | number>): string;
+export function t(message: string, ...args: Array<string | number | boolean>): string;
 /**
  * @public
  * Marks a string for localization. If the bundle has a localized value for this message, then that localized
@@ -93,13 +93,13 @@ export function t(options: {
      * match the template placeholder in the localized string. As a Record, the key is used to match the template
      * placeholder in the localized string.
      */
-    args?: Array<string | number> | Record<string, any>;
+    args?: Array<string | number | boolean> | Record<string, any>;
     /**
      * A comment to help translators understand the context of the message.
      */
-    comment: string[];
+    comment: string | string[];
 }): string;
-export function t(...args: [str: string, ...args: Array<string | number>] | [message: string, args: Record<string, any>] | [options: { message: string; args?: Array<string | number> | Record<string, any>; comment?: string[] }]): string {
+export function t(...args: [str: string, ...args: Array<string | number | boolean>] | [message: string, args: Record<string, any>] | [options: { message: string; args?: Array<string | number | boolean> | Record<string, any>; comment?: string | string[] }]): string {
     const firstArg = args[0];
     let key: string;
     let message: string;
@@ -114,7 +114,7 @@ export function t(...args: [str: string, ...args: Array<string | number>] | [mes
         key = message;
         if (firstArg.comment && firstArg.comment.length > 0) {
             // in the format: message/commentcommentcomment
-            key += `/${firstArg.comment.join()}`;
+            key += `/${Array.isArray(firstArg.comment) ? firstArg.comment.join() : firstArg.comment}`;
         }
         formatArgs = firstArg.args as any[] ?? {};
     }
