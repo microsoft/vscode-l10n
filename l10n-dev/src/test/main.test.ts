@@ -38,7 +38,7 @@ vscode.l10n.t("Hello World");
 				'Hello Universe': 'Hello Universe',
 			});
 			const xlf = getL10nXlf(map);
-			assert.strictEqual(xlf, '<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="a" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e">\r\n      <source xml:lang="en">Hello World</source>\r\n    </trans-unit>\r\n  </body></file>\r\n  <file original="b" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="d73d0e9e4c117844d0621a950e8b65c635d023e12a5e6f80b89d077a6b14a71b">\r\n      <source xml:lang="en">Hello Universe</source>\r\n    </trans-unit>\r\n  </body></file>\r\n</xliff>');
+			assert.strictEqual(xlf, '<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="a" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="++CODE++a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e">\r\n      <source xml:lang="en">Hello World</source>\r\n    </trans-unit>\r\n  </body></file>\r\n  <file original="b" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="++CODE++d73d0e9e4c117844d0621a950e8b65c635d023e12a5e6f80b89d077a6b14a71b">\r\n      <source xml:lang="en">Hello Universe</source>\r\n    </trans-unit>\r\n  </body></file>\r\n</xliff>');
 		});
 	});
 
@@ -57,7 +57,7 @@ vscode.l10n.t("Hello World");
   </file>
   <file original="bundle" source-language="en" datatype="plaintext" target-language="${language}">
     <body>
-      <trans-unit id="description">
+      <trans-unit id="++CODE++a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e">
         <source xml:lang="en">Hello</source>
         <target state="new">World</target>
       </trans-unit>

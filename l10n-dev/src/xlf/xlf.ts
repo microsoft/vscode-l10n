@@ -6,7 +6,10 @@
 import * as xml2js from 'xml2js';
 import * as crypto from 'crypto';
 import { Line } from "./line";
-import { l10nJsonDetails, l10nJsonFormat, MessageInfo } from "../common";
+import { l10nJsonDetails, l10nJsonFormat, l10nJsonMessageFormat } from "../common";
+
+const hashedIdSignal = '++CODE++';
+const hashedIdLength = 72; // 64 because it was a SHA256 hash + hashedIdSignal.length
 
 interface Item {
 	id: string;
@@ -14,10 +17,10 @@ interface Item {
 	comment?: string;
 }
 
-function getMessage(value: MessageInfo): string {
+function getMessage(value: l10nJsonMessageFormat): string {
 	return typeof value === 'string' ? value : value.message;
 }
-function getComment(value: MessageInfo): string[] | undefined {
+function getComment(value: l10nJsonMessageFormat): string[] | undefined {
 	return typeof value === 'string' ? undefined : value.comment;
 }
 
@@ -63,7 +66,7 @@ export class XLF {
 			this.appendNewLine(`<file original="${file}" source-language="${this.sourceLanguage}" datatype="plaintext"><body>`, 2);
 			for (const item of this.files[file]!) {
 				// package.nls.json files use the id as it is defined by the user so we don't use a placeholder id in that case
-				this.addStringItem(item, file !== 'package');
+				this.addStringItem(item);
 			}
 			this.appendNewLine('</body></file>', 2);
 		}
@@ -87,16 +90,18 @@ export class XLF {
 
 			const message = encodeEntities(getMessage(bundle[id]!));
 			const comment = getComment(bundle[id]!)?.map(c => encodeEntities(c)).join(`\r\n`);
-			this.files[key]!.push({ id, message, comment });
+			this.files[key]!.push({ id: encodeEntities(id), message, comment });
 		}
 	}
 
-	private addStringItem(item: Item, usePlaceholderId = true): void {
+	private addStringItem(item: Item): void {
 		if (!item.id || !item.message) {
 			throw new Error('No item ID or value specified.');
 		}
 
-		const id = usePlaceholderId ? crypto.createHash('sha256').update(item.id, 'binary').digest('hex') : item.id;
+		const id = item.id.startsWith(item.message)
+			? hashedIdSignal + crypto.createHash('sha256').update(item.id, 'binary').digest('hex')
+			: item.id;
 		this.appendNewLine(`<trans-unit id="${encodeEntities(id)}">`, 4);
 		this.appendNewLine(`<source xml:lang="${this.sourceLanguage}">${item.message}</source>`, 6);
 
@@ -156,7 +161,7 @@ export class XLF {
 					}
 
 					let key: string;
-					if (type === 'package') {
+					if (!unit.$.id.startsWith(hashedIdSignal) || unit.$.id.length !== hashedIdLength) {
 						key = unit.$.id;
 					} else {
 						const source = getValue(unit.source);
