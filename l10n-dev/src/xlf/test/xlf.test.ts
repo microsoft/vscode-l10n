@@ -21,6 +21,20 @@ describe('XLF', () => {
             const result = xlf.toString();
             assert.strictEqual(result, '<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="package" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="Hello">\r\n      <source xml:lang="en">World</source>\r\n    </trans-unit>\r\n  </body></file>\r\n</xliff>');
         });
+
+        it('sorts files by name and items by message', () => {
+            const xlf = new XLF();
+            xlf.addFile('b', { b: 'b', a: 'a' });
+            xlf.addFile('a', { b: 'b', a: 'a' });
+            const result = xlf.toString();
+            const header = '<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="a" source-language="en" datatype="plaintext"><body>';
+            const a = '\r\n    <trans-unit id="++CODE++ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb">\r\n      <source xml:lang="en">a</source>\r\n    </trans-unit>';
+            const b = '\r\n    <trans-unit id="++CODE++3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d">\r\n      <source xml:lang="en">b</source>\r\n    </trans-unit>';
+            const nextFile = '\r\n  </body></file>\r\n  <file original="b" source-language="en" datatype="plaintext"><body>';
+            const footer = '\r\n  </body></file>\r\n</xliff>';
+
+            assert.strictEqual(result, header + a + b + nextFile + a + b + footer);
+        });
     
         it('escapes things correctly', () => {
             const xlf = new XLF();
@@ -34,13 +48,13 @@ describe('XLF', () => {
             });
             const result = xlf.toString();
             const header = '<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="bundle" source-language="en" datatype="plaintext"><body>';
-            const quotes = '\r\n    <trans-unit id="++CODE++eac56912e89dd33f3372f8cb3bc427c679f2bfe57eb88c129e1567e32ef6397b">\r\n      <source xml:lang="en">&quot;&quot;</source>\r\n    </trans-unit>';
-            const apostrophes = '\r\n    <trans-unit id="++CODE++c9e4e11220410db06ceafcd46bac2289fdb40be0a3f35536753e496d56a8e12a">\r\n      <source xml:lang="en">&apos;&apos;</source>\r\n    </trans-unit>';
-            const lessThan = '\r\n    <trans-unit id="++CODE++818e5b6ec86af43da253e44986ed7260db48f2f972a3fafc3575d1a4a088ac3f">\r\n      <source xml:lang="en">&lt;&lt;</source>\r\n    </trans-unit>';
-            const greaterThan = '\r\n    <trans-unit id="++CODE++e3fb2b34d67c2a94b8080121fcd2093339b17c74871275968251fead90e542f7">\r\n      <source xml:lang="en">&gt;&gt;</source>\r\n    </trans-unit>';
             const amp = '\r\n    <trans-unit id="++CODE++360d9d079c933408511677541ccd65fece76a0c52492ff7b4968b321ec254ecd">\r\n      <source xml:lang="en">&amp;&amp;</source>\r\n    </trans-unit>';
+            const apostrophes = '\r\n    <trans-unit id="++CODE++c9e4e11220410db06ceafcd46bac2289fdb40be0a3f35536753e496d56a8e12a">\r\n      <source xml:lang="en">&apos;&apos;</source>\r\n    </trans-unit>';
+            const greaterThan = '\r\n    <trans-unit id="++CODE++e3fb2b34d67c2a94b8080121fcd2093339b17c74871275968251fead90e542f7">\r\n      <source xml:lang="en">&gt;&gt;</source>\r\n    </trans-unit>';
+            const lessThan = '\r\n    <trans-unit id="++CODE++818e5b6ec86af43da253e44986ed7260db48f2f972a3fafc3575d1a4a088ac3f">\r\n      <source xml:lang="en">&lt;&lt;</source>\r\n    </trans-unit>';
+            const quotes = '\r\n    <trans-unit id="++CODE++eac56912e89dd33f3372f8cb3bc427c679f2bfe57eb88c129e1567e32ef6397b">\r\n      <source xml:lang="en">&quot;&quot;</source>\r\n    </trans-unit>';
             const footer = '\r\n  </body></file>\r\n</xliff>';
-            assert.strictEqual(result, header + quotes + apostrophes + lessThan + greaterThan + amp + footer);
+            assert.strictEqual(result, header + amp + apostrophes + greaterThan + lessThan + quotes + footer);
         });
     });
 

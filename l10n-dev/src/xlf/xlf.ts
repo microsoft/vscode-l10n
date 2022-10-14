@@ -49,22 +49,22 @@ function getValue(node: any): string | undefined {
 }
 
 export class XLF {
-	private buffer: string[];
-	private files: { [key: string]: Item[] };
+	private buffer: string[] = [];
+	private files = new Map<string, Item[]>();
 	private sourceLanguage: string;
 
 	constructor(options?: { sourceLanguage?: string; }) {
-		this.buffer = [];
-		this.files = Object.create(null);
 		this.sourceLanguage = options?.sourceLanguage ?? 'en';
 	}
 
 	public toString(): string {
 		this.appendHeader();
 
-		for (const file in this.files) {
+		const filesSorted = [...this.files].sort((a, b) => (a[0] > b[0] ? 1 : -1));
+		for (const [ file, items ] of filesSorted) {
 			this.appendNewLine(`<file original="${file}" source-language="${this.sourceLanguage}" datatype="plaintext"><body>`, 2);
-			for (const item of this.files[file]!) {
+			const itemsSorted = items.sort((a, b) => a.message > b.message ? 1 : -1);
+			for (const item of itemsSorted) {
 				// package.nls.json files use the id as it is defined by the user so we don't use a placeholder id in that case
 				this.addStringItem(item);
 			}
@@ -79,7 +79,7 @@ export class XLF {
 		if (Object.keys(bundle).length === 0) {
 			return;
 		}
-		this.files[key] = [];
+		this.files.set(key, []);
 		const existingKeys: Set<string> = new Set();
 
 		for (const id in bundle) {
@@ -90,7 +90,7 @@ export class XLF {
 
 			const message = encodeEntities(getMessage(bundle[id]!));
 			const comment = getComment(bundle[id]!)?.map(c => encodeEntities(c)).join(`\r\n`);
-			this.files[key]!.push({ id: encodeEntities(id), message, comment });
+			this.files.get(key)!.push({ id: encodeEntities(id), message, comment });
 		}
 	}
 
