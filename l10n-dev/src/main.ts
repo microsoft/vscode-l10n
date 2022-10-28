@@ -5,13 +5,13 @@
 
 import merge from 'deepmerge-json';
 import { localize } from 'pseudo-localization';
-import { JavaScriptAnalyzer } from "./ast/analyzer";
-import { l10nJsonDetails, l10nJsonFormat } from './common';
+import { ScriptAnalyzer } from "./ast/analyzer";
+import { IScriptFile, l10nJsonDetails, l10nJsonFormat } from './common';
 import { XLF } from "./xlf/xlf";
 
-export { l10nJsonDetails, l10nJsonFormat, l10nJsonMessageFormat } from './common';
+export { l10nJsonDetails, l10nJsonFormat, l10nJsonMessageFormat, IScriptFile } from './common';
 
-const analyzer = new JavaScriptAnalyzer();
+const analyzer = new ScriptAnalyzer();
 
 /**
  * @public
@@ -30,7 +30,7 @@ export interface L10nToXlfOptions {
  * @param fileContents - Array of file contents to analyze
  * @returns l10nJsonFormat
  */
-export function getL10nJson(fileContents: string[]): l10nJsonFormat {
+export function getL10nJson(fileContents: IScriptFile[]): l10nJsonFormat {
 	const bundles = fileContents.map(contents => {
 		const result = analyzer.analyze(contents);
 		return result.bundle;

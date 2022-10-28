@@ -9,7 +9,7 @@ import * as glob from 'glob';
 import { getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf } from "./main";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { l10nJsonFormat } from "./common";
+import { IScriptFile, l10nJsonFormat } from "./common";
 
 yargs(hideBin(process.argv))
 .scriptName("vscode-l10n-dev")
@@ -105,13 +105,23 @@ yargs(hideBin(process.argv))
 function l10nExportStrings(paths: string[], outDir: string): void {
 	console.log('Searching for TypeScript files...');
 	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
-	const tsFileContents = matches.reduce<string[]>((prev, curr) => {
-		if (curr.endsWith('.ts')) {
-			prev.push(readFileSync(path.resolve(curr), 'utf8'));
+	const tsFileContents = matches.reduce<IScriptFile[]>((prev, curr) => {
+		const ext = path.extname(curr);
+		switch(ext) {
+			case '.ts':
+			case '.tsx':
+				prev.push({
+					extension: ext,
+					contents: readFileSync(path.resolve(curr), 'utf8')
+				});
+				break;
 		}
-		const results = glob.sync(path.posix.join(curr, `{,!(node_modules)/**}`, '*.ts'));
+		const results = glob.sync(path.posix.join(curr, `{,!(node_modules)/**}`, '*.{ts,tsx}'));
 		for (const result of results) {
-			prev.push(readFileSync(path.resolve(result), 'utf8'));
+			prev.push({
+				extension: path.extname(result),
+				contents: readFileSync(path.resolve(result), 'utf8')
+			});
 		}
 		return prev;
 	}, []);

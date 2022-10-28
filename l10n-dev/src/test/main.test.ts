@@ -8,22 +8,44 @@ import { getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf } 
 
 describe('main', () => {
 	context('getL10nJson', () => {
-		it('works', () => {
-			const result = getL10nJson([`
-			import * as vscode from "vscode";
-			vscode.l10n.t("Hello World");
-		`]);
+		it('works for ts', () => {
+			const result = getL10nJson([{
+				extension: '.ts',
+				contents: `
+					import * as vscode from "vscode";
+					vscode.l10n.t("Hello World");`
+			}]);
 			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World"}');
+		});
+
+		it('works for tsx', () => {
+			const result = getL10nJson([{
+				extension: '.tsx',
+				contents: `
+					import React from 'react';
+					import * as l10n from '@vscode/l10n';
+					function foo() {
+						return (
+							<span>
+								<textarea placeholder={l10n.t('Hello World')} />
+								<span>{l10n.t('Hello Globe')}</span>
+							</span>
+						);
+					}`
+			}]);
+			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World","Hello Globe":"Hello Globe"}');
 		});
 
 		it('using a TS construct that could be confused as JS should also work fine', () => {
 			// The casting originally caused a problem where l10n calls after it would be ignored
 			// because we were analyzing JS as TS... now that we use file.ts in the analyzer, this
 			// issue goes away.
-			const result = getL10nJson([`import * as vscode from 'vscode';
-console.log(<any>"foo");
-vscode.l10n.t("Hello World");
-`]);
+			const result = getL10nJson([{
+				extension: '.ts',
+				contents: `import * as vscode from 'vscode';
+					console.log(<any>"foo");
+					vscode.l10n.t("Hello World");`
+			}]);
 			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World"}');
 		});
 	});
