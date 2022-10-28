@@ -30,3 +30,12 @@ export interface l10nJsonDetails {
 	name: string;
 	language: string;
 }
+
+/**
+ * @public
+ * Data structure of a script file
+ */
+export interface IScriptFile {
+	contents: string;
+	extension: string;
+}

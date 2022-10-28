@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import ts from "typescript";
-import { l10nJsonFormat } from "../common";
+import { IScriptFile, l10nJsonFormat } from "../common";
 import { SingleFileServiceHost } from "./singleFileServiceHost";
 import { collect, isRequireImport, isImportNode, CollectStepResult, findClosestNode, unescapeString } from "./utils";
 
@@ -13,13 +13,12 @@ export interface AnalysisResult {
 	bundle: l10nJsonFormat;
 }
 
-export class JavaScriptAnalyzer {
-    analyze(contents: string): AnalysisResult {
+// TODO: Support JS and JSX files
+export class ScriptAnalyzer {
+    analyze({ extension, contents }: IScriptFile): AnalysisResult {
+        const filename = `file${extension}`;
         const options: ts.CompilerOptions = {};
         options.noResolve = true;
-
-        // TODO: Support TSX files or maybe even JS and JSX files by passing the file extension to the service host
-        const filename = 'file.ts';
         const serviceHost = new SingleFileServiceHost(options, filename, contents);
         const service = ts.createLanguageService(serviceHost);
         const sourceFile = service.getProgram()!.getSourceFile(filename)!;
