@@ -3,7 +3,7 @@
 Tooling used for extracting l10n strings from vscode extensions. Supports extracting strings in usages of:
 
 * `vscode.l10n.t(...)` from the vscode API
-* `l10n.t(...)` from the [l10n subprocess library](../l10n)
+* `l10n.t(...)` from the [l10n subprocess library](https://github.com/microsoft/vscode-l10n/tree/main/l10n)
 
 ## Usage
 
