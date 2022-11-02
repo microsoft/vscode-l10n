@@ -138,8 +138,8 @@ export class XLF {
 		}
 
 		fileNodes.forEach((file) => {
-			const type = file.$.original;
-			if (!type) {
+			const name = file.$.original;
+			if (!name) {
 				throw new Error('XLIFF file node does not contain original attribute to determine the original location of the resource file.');
 			}
 			const language = file.$['target-language'].toLowerCase();
@@ -147,7 +147,7 @@ export class XLF {
 				throw new Error('XLIFF file node does not contain target-language attribute to determine translated language.');
 			}
 
-			const messages: { [key: string]: string } = {};
+			const messagesMap = new Map<string, string>();
 			const transUnits = file.body[0]['trans-unit'];
 			if (transUnits) {
 				transUnits.forEach((unit: any) => {
@@ -176,14 +176,20 @@ export class XLF {
 						}
 					}
 
-					messages[key] = decodeEntities(target);
+					messagesMap.set(key, decodeEntities(target));
 				});
 
-				files.push({ messages, name: type, language });
+				// Sort result so it's predictable
+				const messages: { [key: string]: string } = {};
+				for (const key of [...messagesMap.keys()].sort()) {
+					messages[key] = messagesMap.get(key)!;
+				}
+
+				files.push({ messages, name, language });
 			}
 		});
 
-		return files;
+		return files.sort((a, b) => a.name.localeCompare(b.name));
 	}
 }
 

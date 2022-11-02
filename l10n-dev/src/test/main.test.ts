@@ -92,12 +92,12 @@ describe('main', () => {
 		it('works', async () => {
 			const details = await getL10nFilesFromXlf(generateTextXLF('de'))
 			assert.strictEqual(details.length, 2);
-			assert.strictEqual(details[0]!.name, 'package');
+			assert.strictEqual(details[0]!.name, 'bundle');
 			assert.strictEqual(details[0]!.language, 'de');
-			assert.strictEqual(details[0]!.messages['id'], 'World');
-			assert.strictEqual(details[1]!.name, 'bundle');
+			assert.strictEqual(details[0]!.messages['Hello'], 'World');
+			assert.strictEqual(details[1]!.name, 'package');
 			assert.strictEqual(details[1]!.language, 'de');
-			assert.strictEqual(details[1]!.messages['Hello'], 'World');
+			assert.strictEqual(details[1]!.messages['id'], 'World');
 		});
 
 		it('properly changes some of the languages based on VS Code language packs', async () => {
