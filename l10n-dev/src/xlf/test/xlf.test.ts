@@ -139,5 +139,52 @@ describe('XLF', () => {
             assert.ok(result[0]!.messages['&&']);
             assert.strictEqual(result[0]!.messages['&&'], '&&');
         });
+
+        it ('sorts files by name and then messages by key', async () => {
+            // Note that package comes before bundle but 
+            const result = await XLF.parse(`
+    <?xml version="1.0" encoding="utf-8"?>
+    <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file original="2" source-language="en" datatype="plaintext" target-language="de">
+    <body>
+        <trans-unit id="b">
+            <source xml:lang="en">b</source>
+            <target state="translated">b</target>
+        </trans-unit>
+        <trans-unit id="a">
+            <source xml:lang="en">a</source>
+            <target state="translated">a</target>
+        </trans-unit>
+    </body>
+    </file>
+    <file original="1" source-language="en" datatype="plaintext" target-language="de">
+    <body>
+        <trans-unit id="b">
+            <source xml:lang="en">b</source>
+            <target state="translated">b</target>
+        </trans-unit>
+        <trans-unit id="a">
+            <source xml:lang="en">a</source>
+            <target state="translated">a</target>
+        </trans-unit>
+    </body>
+    </file>
+    </xliff>`);
+
+            assert.ok(result);
+            assert.strictEqual(result.length, 2);
+
+            assert.strictEqual(result[0]!.name, '1');
+            assert.ok(result[0]!.messages['a']);
+            assert.strictEqual(result[0]!.messages['a'], 'a');
+            assert.ok(result[1]!.messages['b']);
+            assert.strictEqual(result[1]!.messages['b'], 'b');
+
+            assert.strictEqual(result[1]!.name, '2');
+            assert.ok(result[0]!.messages['a']);
+            assert.strictEqual(result[0]!.messages['a'], 'a');
+            assert.ok(result[1]!.messages['b']);
+            assert.strictEqual(result[1]!.messages['b'], 'b');
+        });
     });
 });
