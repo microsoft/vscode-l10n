@@ -30,7 +30,15 @@ extends:
     npmPackages:
       - name: l10n-dev
 
-        buildPlatforms:
+        buildSteps:
+          - script: npm ci
+            workingDirectory: $(Build.SourcesDirectory)/l10n-dev
+            displayName: Install dependencies
+          - script: npm run compile
+            workingDirectory: $(Build.SourcesDirectory)/l10n-dev
+            displayName: Compile npm package
+
+        testPlatforms:
           - name: Linux
             nodeVersions:
               - 14.x
@@ -40,15 +48,13 @@ extends:
               - 14.x
               - 16.x
 
-        buildSteps:
+        testSteps:
           - script: npm ci
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
             displayName: Install dependencies
           - script: npm run compile
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
             displayName: Compile npm package
-
-        testSteps:
           - script: npm run test
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
             displayName: Test npm package
@@ -59,7 +65,15 @@ extends:
       - name: l10n
         dependsOn: l10n-dev
 
-        buildPlatforms:
+        buildSteps:
+          - script: npm ci
+            workingDirectory: $(Build.SourcesDirectory)/l10n
+            displayName: Install dependencies
+          - script: npm run compile
+            workingDirectory: $(Build.SourcesDirectory)/l10n
+            displayName: Compile npm package
+
+        testPlatforms:
           - name: Linux
             nodeVersions:
               - 14.x
@@ -69,15 +83,13 @@ extends:
               - 14.x
               - 16.x
 
-        buildSteps:
+        testSteps:
           - script: npm ci
             workingDirectory: $(Build.SourcesDirectory)/l10n
             displayName: Install dependencies
           - script: npm run compile
             workingDirectory: $(Build.SourcesDirectory)/l10n
             displayName: Compile npm package
-
-        testSteps:
           - script: npm run test
             workingDirectory: $(Build.SourcesDirectory)/l10n
             displayName: Test npm package
