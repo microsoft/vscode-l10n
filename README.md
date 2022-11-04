@@ -1,7 +1,5 @@
 # Localization tooling for Visual Studio Code
 
-🚨 This repo is still under early development. API may be changed 🚨
-
 This repository contains tooling for localizing Visual Studio Code extensions. Localization for VS Code extension's source code has 4 important parts:
 
 * `vscode.l10n.t` - The API for translating strings in your extension's code
