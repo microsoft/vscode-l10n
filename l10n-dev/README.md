@@ -48,9 +48,9 @@ If you wanted to support French, you would create this in a `bundle.l10n.fr.json
 }
 ```
 
-> **Note**: You don't need the comments in the localized bundles since the comments are only useful for translators translating the original bundle.
+> **Note** You don't need the comments in the localized bundles since the comments are only useful for translators translating the original bundle.
 
-> **Note**: Make sure your `package.json` has an `l10n` field that points to where you are storing these bundles. For example:
+> **Note** Make sure your `package.json` has an `l10n` field that points to where you are storing these bundles. For example:
 >
 > ```json
 > {
