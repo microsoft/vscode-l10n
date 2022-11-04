@@ -21,7 +21,7 @@ Tooling used for extracting `l10n` strings from vscode extensions and working wi
 
 Library used for loading the translations into subprocesses of your extension. See it's dedicated [README](./l10n) for usage instructions.
 
-> NOTE: You should _NOT_ use this library in your extension's main process. The translations are loaded into the main process by VS Code itself.
+> **Note** You should _NOT_ use this library in your extension's main process. The translations are loaded into the main process by VS Code itself.
 
 ## `package.nls.json`
 
