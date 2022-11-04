@@ -24,80 +24,74 @@ parameters:
     type: boolean
     default: false
 
-variables:
-  l10nDevTestAndPackage: ${{ or(eq(parameters.publishPackage1, true), eq(variables['Build.Reason'], 'IndividualCI')) }}
-  l10nTestAndPackage: ${{ or(eq(parameters.publishPackage2, true), eq(variables['Build.Reason'], 'IndividualCI')) }}
-
 extends:
   template: azure-pipelines/npm-package/pipeline.yml@templates
   parameters:
     npmPackages:
-      - ${{ if eq(variables.l10nDevTestAndPackage, true) }}:
-        - name: l10n-dev
+      - name: l10n-dev
 
-          buildSteps:
-            - script: npm ci
-              workingDirectory: $(Build.SourcesDirectory)/l10n-dev
-              displayName: Install dependencies
-            - script: npm run compile
-              workingDirectory: $(Build.SourcesDirectory)/l10n-dev
-              displayName: Compile npm package
+        buildSteps:
+          - script: npm ci
+            workingDirectory: $(Build.SourcesDirectory)/l10n-dev
+            displayName: Install dependencies
+          - script: npm run compile
+            workingDirectory: $(Build.SourcesDirectory)/l10n-dev
+            displayName: Compile npm package
 
-          testPlatforms:
-            - name: Linux
-              nodeVersions:
-                - 14.x
-                - 16.x
-            - name: Windows
-              nodeVersions:
-                - 14.x
-                - 16.x
+        testPlatforms:
+          - name: Linux
+            nodeVersions:
+              - 14.x
+              - 16.x
+          - name: Windows
+            nodeVersions:
+              - 14.x
+              - 16.x
 
-          testSteps:
-            - script: npm ci
-              workingDirectory: $(Build.SourcesDirectory)/l10n-dev
-              displayName: Install dependencies
-            - script: npm run compile
-              workingDirectory: $(Build.SourcesDirectory)/l10n-dev
-              displayName: Compile npm package
-            - script: npm run test
-              workingDirectory: $(Build.SourcesDirectory)/l10n-dev
-              displayName: Test npm package
+        testSteps:
+          - script: npm ci
+            workingDirectory: $(Build.SourcesDirectory)/l10n-dev
+            displayName: Install dependencies
+          - script: npm run compile
+            workingDirectory: $(Build.SourcesDirectory)/l10n-dev
+            displayName: Compile npm package
+          - script: npm run test
+            workingDirectory: $(Build.SourcesDirectory)/l10n-dev
+            displayName: Test npm package
 
-          publishPackage: ${{ parameters.publishPackage1 }}
-          workingDirectory: $(Build.SourcesDirectory)/l10n-dev
+        publishPackage: ${{ parameters.publishPackage1 }}
+        workingDirectory: $(Build.SourcesDirectory)/l10n-dev
 
-      - ${{ if eq(variables.l10nTestAndPackage, true) }}:
-        - name: l10n
+      - name: l10n
 
-          buildSteps:
-            - script: npm ci
-              workingDirectory: $(Build.SourcesDirectory)/l10n
-              displayName: Install dependencies
-            - script: npm run compile
-              workingDirectory: $(Build.SourcesDirectory)/l10n
-              displayName: Compile npm package
+        buildSteps:
+          - script: npm ci
+            workingDirectory: $(Build.SourcesDirectory)/l10n
+            displayName: Install dependencies
+          - script: npm run compile
+            workingDirectory: $(Build.SourcesDirectory)/l10n
+            displayName: Compile npm package
 
-          testPlatforms:
-            - name: Linux
-              nodeVersions:
-                - 14.x
-                - 16.x
-            - name: Windows
-              nodeVersions:
-                - 14.x
-                - 16.x
+        testPlatforms:
+          - name: Linux
+            nodeVersions:
+              - 14.x
+              - 16.x
+          - name: Windows
+            nodeVersions:
+              - 14.x
+              - 16.x
 
-          testSteps:
-            - script: npm ci
-              workingDirectory: $(Build.SourcesDirectory)/l10n
-              displayName: Install dependencies
-            - script: npm run compile
-              workingDirectory: $(Build.SourcesDirectory)/l10n
-              displayName: Compile npm package
-            - script: npm run test
-              workingDirectory: $(Build.SourcesDirectory)/l10n
-              displayName: Test npm package
+        testSteps:
+          - script: npm ci
+            workingDirectory: $(Build.SourcesDirectory)/l10n
+            displayName: Install dependencies
+          - script: npm run compile
+            workingDirectory: $(Build.SourcesDirectory)/l10n
+            displayName: Compile npm package
+          - script: npm run test
+            workingDirectory: $(Build.SourcesDirectory)/l10n
+            displayName: Test npm package
 
-          publishPackage: ${{ parameters.publishPackage2 }}
-          workingDirectory: $(Build.SourcesDirectory)/l10n
+        publishPackage: ${{ parameters.publishPackage2 }}
+        workingDirectory: $(Build.SourcesDirectory)/l10n
