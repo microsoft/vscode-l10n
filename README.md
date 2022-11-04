@@ -9,7 +9,7 @@ This repository contains tooling for localizing Visual Studio Code extensions. L
 
 ## `vscode.l10n.t`
 
-This API is used for translating strings in your extension's code. It is a part of the main VS Code extension API and id further documented [here](https://code.visualstudio.com/api/references/vscode-api#env).
+This API is used for translating strings in your extension's code. It is a part of the main VS Code extension API and is further documented [here](https://code.visualstudio.com/api/references/vscode-api#l10n).
 
 ## `@vscode/l10n-dev`
 
