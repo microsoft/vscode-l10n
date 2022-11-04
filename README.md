@@ -7,6 +7,8 @@ This repository contains tooling for localizing Visual Studio Code extensions. L
 * [`@vscode/l10n`](#vscodel10n) - The library used for loading the translations into subprocesses of your extension
 * [`package.nls.json`](#packagenlsjson) - The file used for translating static contributions in your extension's `package.json`
 
+Additionally, for a sample of how to use these tools, see the [l10n-sample](https://github.com/microsoft/vscode-extension-samples/tree/main/l10n-sample) in the vscode-extension-samples repo.
+
 ## `vscode.l10n.t`
 
 This API is used for translating strings in your extension's code. It is a part of the main VS Code extension API and is further documented [here](https://code.visualstudio.com/api/references/vscode-api#l10n).
