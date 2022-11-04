@@ -50,7 +50,7 @@ Your `./package.json`:
 
 Your `./package.nls.json`:
 
-```json
+```jsonc
 {
   // That same key from the package.json
   "my-extension.helloWorld.title": "Hello World"
@@ -59,7 +59,7 @@ Your `./package.nls.json`:
 
 Your `./package.nls.de.json`:
 
-```json
+```jsonc
 {
   // That same key from the package.json
   "my-extension.helloWorld.title": "Hallo Welt"
