@@ -28,8 +28,6 @@ parameters:
 variables:
   l10nDevTestAndPackage: ${{ or(eq(parameters.publishPackage1, true), eq(variables['Build.Reason'], 'IndividualCI')) }}
   l10nTestAndPackage: ${{ or(eq(parameters.publishPackage2, true), eq(variables['Build.Reason'], 'IndividualCI')) }}
-  ${{ if and(eq(variables.l10nDevTestAndPackage, true), eq(variables.l10nTestAndPackage, true)) }}:
-    l10nDependsOn: l10n-dev
 
 extends:
   template: azure-pipelines/npm-package/pipeline.yml@templates
@@ -72,7 +70,6 @@ extends:
 
       - ${{ if eq(variables.l10nTestAndPackage, true) }}:
         - name: l10n
-          dependsOn: ${{ variables.l10nDependsOn }}
 
           buildSteps:
             - script: npm ci
