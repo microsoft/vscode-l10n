@@ -22,6 +22,7 @@ Tooling used for extracting `l10n` strings from vscode extensions and working wi
 Library used for loading the translations into subprocesses of your extension. See it's dedicated [README](./l10n) for usage instructions.
 
 > **Note**
+>
 > You should _NOT_ use this library in your extension's main process. The translations are loaded into the main process by VS Code itself.
 
 ## `package.nls.json`
@@ -70,6 +71,7 @@ Your `./package.nls.de.json`:
 VS Code will automatically load the correct `package.nls.{locale}.json` (or `package.nls.json` for English) file based on the locale of the user. If no translation is available for a given key, VS Code will fall back to the English translation.
 
 > **Note**
+>
 > [@vscode/l10n-dev](#vscodel10n-dev) has some tooling around these files (converting them to XLIFF files, generating Pseudo-Localization files, etc.) that you can use.
 
 ## Contributing
