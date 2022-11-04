@@ -84,6 +84,9 @@ If you find yourself needing to generate an XLIFF file, you can use the `generat
 ```
 npx @vscode/l10n-dev generate-xlf ./package.nls.json ./bundle.l10n.json --outFile vscode-git.xlf
 ```
+
+> **Note**
+>
 > `-o` is the alias for `--outFile`. You can optionally specify a `--language` or `-l` to specify the language of the XLIFF file. `en` is the default.
 
 XLIFF has a wide range of tools out there. As we learn about successful workflows, we'll add them here.
@@ -95,6 +98,9 @@ If you receive your translations from your translators in the form of an XLIFF f
 ```
 npx @vscode/l10n-dev import-xlf ./translations.xlf
 ```
+
+> **Note**
+>
 > You can optionally specify an `--outDir` or `-o` to specify where the extracted strings should be written to. Current working directory is the default.
 
 This command will then place a `bundle.l10n.<language>.json` and a `package.nls.<language>.json` file in the current working directory for whatever language that XLIFF file targets.
