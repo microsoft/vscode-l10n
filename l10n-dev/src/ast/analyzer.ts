@@ -19,6 +19,7 @@ export class ScriptAnalyzer {
         const filename = `file${extension}`;
         const options: ts.CompilerOptions = {};
         options.noResolve = true;
+        options.allowJs = true;
         const serviceHost = new SingleFileServiceHost(options, filename, contents);
         const service = ts.createLanguageService(serviceHost);
         const sourceFile = service.getProgram()!.getSourceFile(filename)!;

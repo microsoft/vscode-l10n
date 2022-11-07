@@ -18,12 +18,39 @@ describe('main', () => {
 			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World"}');
 		});
 
+		it('works for js', () => {
+			const result = getL10nJson([{
+				extension: '.js',
+				contents: `
+					const vscode = require("vscode");
+					vscode.l10n.t("Hello World");`
+			}]);
+			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World"}');
+		});
+
 		it('works for tsx', () => {
 			const result = getL10nJson([{
 				extension: '.tsx',
 				contents: `
 					import React from 'react';
 					import * as l10n from '@vscode/l10n';
+					function foo() {
+						return (
+							<span>
+								<textarea placeholder={l10n.t('Hello World')} />
+								<span>{l10n.t('Hello Globe')}</span>
+							</span>
+						);
+					}`
+			}]);
+			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World","Hello Globe":"Hello Globe"}');
+		});
+
+		it('works for jsx', () => {
+			const result = getL10nJson([{
+				extension: '.jsx',
+				contents: `
+					const l10n = require('@vscode/l10n');
 					function foo() {
 						return (
 							<span>

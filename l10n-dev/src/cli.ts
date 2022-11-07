@@ -103,20 +103,22 @@ yargs(hideBin(process.argv))
 .help().argv;
 
 function l10nExportStrings(paths: string[], outDir: string): void {
-	console.log('Searching for TypeScript files...');
+	console.log('Searching for TypeScript/JavaScript files...');
 	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
 	const tsFileContents = matches.reduce<IScriptFile[]>((prev, curr) => {
 		const ext = path.extname(curr);
 		switch(ext) {
 			case '.ts':
 			case '.tsx':
+			case '.js':
+			case '.jsx':
 				prev.push({
 					extension: ext,
 					contents: readFileSync(path.resolve(curr), 'utf8')
 				});
 				break;
 		}
-		const results = glob.sync(path.posix.join(curr, `{,!(node_modules)/**}`, '*.{ts,tsx}'));
+		const results = glob.sync(path.posix.join(curr, '{,**}', '*.{ts,tsx,js,jsx}'));
 		for (const result of results) {
 			prev.push({
 				extension: path.extname(result),
