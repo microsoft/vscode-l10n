@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { readFileSync } from "fs";
+import * as reader from "./node/reader";
 
 /**
  * @public
@@ -27,10 +27,32 @@ let bundle: l10nJsonFormat | undefined;
 
 /**
  * @public
- * Must be run as soon as possible. Loads the bundle from the given URI or contents.
- * @param config - The uri or contents of the bundle.
+ * Loads the bundle from the given contents. Must be run before the first call to any `l10n.t()` variant.
+ * **Note** The best way to set this is to pass the value of the VS Code API `vscode.l10n.contents`
+ * to the process that uses `@vscode/l10n`.
+ * @param config - An object that contains one property, contents, which should contain the contents of the bundle.
  */
-export function config(config: { uri: string | URL; } | { contents: string | l10nJsonFormat }): void {
+export function config(config: { contents: string | l10nJsonFormat }): void;
+/**
+ * @public
+ * Loads the bundle from the given fsPath. Must be run before the first call to any `l10n.t()` variant.
+ * **Warning** This is not implemented in the browser and will throw an Error.
+ * **Note** The best way to set this is to pass the value of the VS Code API `vscode.l10n.uri.fsPath`
+ * to the process that uses `@vscode/l10n`.
+ * @param config - An object that contains one property, fsPath, which should be a path to a file that contains the bundle.
+ */
+export function config(config: { fsPath: string }): void;
+/**
+ * @public
+ * Loads the bundle from the given URI using an asynchronous fetch request.
+ * **Warning** Since this is an asynchronous API, you need to ensure that it resolves before
+ * the first call to any `l10n.t()` variant.
+ * **Note** The best way to set this is to pass the value of the VS Code API `vscode.l10n.uri.toString()`
+ * to the process that uses `@vscode/l10n`.
+ * @param config - An object that contains one property, uri, which should be a URL to the bundle.
+ */
+export function config(config: { uri: string | URL; }): Promise<void>;
+export function config(config: { contents: string | l10nJsonFormat } | { fsPath: string } | { uri: string | URL; }): void | Promise<void> {
     if ('contents' in config) {
         if (typeof config.contents === 'string') {
             bundle = JSON.parse(config.contents);
@@ -39,12 +61,20 @@ export function config(config: { uri: string | URL; } | { contents: string | l10
         }
         return;
     }
+    if ('fsPath' in config) {
+        const fileContent = reader.readFileFromFsPath(config.fsPath);
+        bundle = JSON.parse(fileContent);
+        return;
+    }
     if(config.uri) {
         let uri = config.uri;
-        if (typeof config.uri === 'string' && config.uri.startsWith('file://')) {
+        if (typeof config.uri === 'string') {
             uri = new URL(config.uri);
         }
-        bundle = JSON.parse(readFileSync(uri, 'utf8'));
+        return reader.readFileFromUri(uri as URL)
+            .then((content) => {
+                bundle = JSON.parse(content);
+            });
     }
 }
 
