@@ -16,6 +16,18 @@ describe('ScriptAnalyzer', () => {
         assert.strictEqual(result.bundle[basecaseText], basecaseText);
     });
 
+    it('require basecase js', () => {
+        const analyzer = new ScriptAnalyzer();
+        const result = analyzer.analyze({
+            extension: '.js',
+            contents: `
+                const vscode = require('vscode');
+                vscode.l10n.t('${basecaseText}');`
+        });
+        assert.strictEqual(Object.keys(result.bundle).length, 1);
+        assert.strictEqual(result.bundle[basecaseText], basecaseText);
+    });
+
     it('require basecase object binding', () => {
         const analyzer = new ScriptAnalyzer();
         const result = analyzer.analyze({
@@ -158,6 +170,23 @@ describe('ScriptAnalyzer', () => {
         const analyzer = new ScriptAnalyzer();
         const result = analyzer.analyze({
             extension: '.tsx',
+            contents: `
+                import React from 'react';
+                import * as l10n from '@vscode/l10n';
+                function foo() {
+                    return (
+                        <textarea placeholder={l10n.t('${basecaseText}')} />
+                    );
+                }`
+        });
+        assert.strictEqual(Object.keys(result.bundle).length, 1);
+        assert.strictEqual(result.bundle[basecaseText], basecaseText);
+    });
+
+    it('@vscode/l10n jsx works', () => {
+        const analyzer = new ScriptAnalyzer();
+        const result = analyzer.analyze({
+            extension: '.jsx',
             contents: `
                 import React from 'react';
                 import * as l10n from '@vscode/l10n';
