@@ -31,12 +31,12 @@ describe('@vscode/l10n', () => {
         assert.strictEqual(l10n.t("message"), "translated message");
     });
 
-    it('load from uri', () => {
+    it('load from uri', async () => {
         mock({
             '/mock-bundle.json': `{ "message": "translated message" }`,
             'C:\\mock-bundle.json': `{ "message": "translated message" }`
         });
-        l10n.config({ uri: new URL(platform === 'win32' ? 'file:///c:/mock-bundle.json' : 'file:///mock-bundle.json') });
+        await l10n.config({ uri: new URL(platform === 'win32' ? 'file:///c:/mock-bundle.json' : 'file:///mock-bundle.json') });
 
         try {
             assert.strictEqual(l10n.t("message"), "translated message");
@@ -45,13 +45,28 @@ describe('@vscode/l10n', () => {
         }
     });
 
-    it('load from uri as string', () => {
+    it('load from uri as string', async () => {
+        mock({
+            '/mock-bundle.json': `{ "message": "translated message" }`,
+            'C:\\mock-bundle.json': `{ "message": "translated message" }`
+        });
+        await l10n.config({
+            uri: new URL(platform === 'win32' ? 'file:///c:/mock-bundle.json' : 'file:///mock-bundle.json').toString()
+        });
+        try {
+            assert.strictEqual(l10n.t("message"), "translated message");
+        } finally {
+            mock.restore();
+        }
+    });
+
+    it('load from fsPath', async () => {
         mock({
             '/mock-bundle.json': `{ "message": "translated message" }`,
             'C:\\mock-bundle.json': `{ "message": "translated message" }`
         });
         l10n.config({
-            uri: new URL(platform === 'win32' ? 'file:///c:/mock-bundle.json' : 'file:///mock-bundle.json').toString()
+            fsPath: platform === 'win32' ? 'C:\\mock-bundle.json' : '/mock-bundle.json'
         });
         try {
             assert.strictEqual(l10n.t("message"), "translated message");
