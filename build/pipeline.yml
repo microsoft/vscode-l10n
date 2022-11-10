@@ -61,6 +61,7 @@ extends:
 
         publishPackage: ${{ parameters.publishPackage1 }}
         workingDirectory: $(Build.SourcesDirectory)/l10n-dev
+        publishRequiresApproval: false
 
       - name: l10n
 
@@ -95,3 +96,4 @@ extends:
 
         publishPackage: ${{ parameters.publishPackage2 }}
         workingDirectory: $(Build.SourcesDirectory)/l10n
+        publishRequiresApproval: false
