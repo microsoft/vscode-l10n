@@ -31,8 +31,16 @@ Promise.all([
 	}),
 	esbuild.build({
 		...sharedConfig,
+		format: 'iife',
+		globalName: 'l10n',
 		platform: 'browser',
 		outfile: 'dist/browser.js',
+	}),
+	esbuild.build({
+		...sharedConfig,
+		format: 'esm',
+		platform: 'browser',
+		outfile: 'dist/browser.esm.js',
 	})
 ])
 .then(() => {

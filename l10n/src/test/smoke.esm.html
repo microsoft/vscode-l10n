@@ -1,0 +1,25 @@
+<div id="mocha" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/8.0.1/mocha.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chai/4.2.0/chai.min.js"></script>
+
+<script type="module">
+import * as l10n from '../../dist/browser.esm.js';
+mocha.setup('bdd');
+
+l10n.config({
+    contents: {
+        'Hello': 'Hallo'
+    }
+});
+
+describe('test', () => {
+    it('has value', () => {
+        chai.expect(l10n.t('Hello')).to.eql('Hallo');
+    });
+    it('fallback', () => {
+        chai.expect(l10n.t('hi')).to.eql('hi');
+    });
+});
+
+mocha.run();
+</script>
