@@ -172,7 +172,7 @@ export class XLF {
 						const note = getValue(unit.note);
 						key = source;
 						if (note) {
-							key += '/' + note.split(/(\r\n|\n)/).join(''); // remove newlines
+							key += '/' + note.replace(/\r?\n/, ''); // remove newlines
 						}
 					}
 
