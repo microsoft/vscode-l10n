@@ -37,3 +37,5 @@ l10n.t({
     comment: ['This is a comment']
 });
 ```
+
+The input for `l10n.conig` pairs nicely with the `bundle` and `uri` properties on the `l10n` namespace that are provided by the [VS Code API](https://code.visualstudio.com/api/references/vscode-api#l10n)
