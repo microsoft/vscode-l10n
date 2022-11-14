@@ -143,7 +143,7 @@ function l10nExportStrings(paths: string[], outDir: string): void {
 	const resolvedOutFile = path.resolve(path.join(outDir, 'bundle.l10n.json'));
 	console.log(`Writing exported strings to: ${resolvedOutFile}`);
 	mkdirSync(path.resolve(outDir), { recursive: true });
-	writeFileSync(resolvedOutFile, JSON.stringify(jsonResult));
+	writeFileSync(resolvedOutFile, JSON.stringify(jsonResult, undefined, 2));
 }
 
 function l10nGenerateXlf(paths: string[], language: string, outFile: string): void {
