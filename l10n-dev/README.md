@@ -22,7 +22,7 @@ or `yarn` equivalent.
 Here's a simple example of using the command line tool:
 
 ```sh
-npx @vscode/l10n-dev export ./src --outDir ./l10n
+npx @vscode/l10n-dev export --outDir ./l10n ./src
 ```
 
 This will search all TypeScript files in `./src` and place a `bundle.l10n.json` file in the `./l10n` folder with all the strings you want to be localized. From there you can make a `bundle.l10n.LOCALE.json` file for each locale you want to support. For example, let's say that the command above generates the following `bundle.l10n.json` file:
