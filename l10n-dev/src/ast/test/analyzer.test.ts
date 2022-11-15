@@ -40,6 +40,41 @@ describe('ScriptAnalyzer', () => {
         assert.strictEqual(result.bundle[basecaseText], basecaseText);
     });
 
+    it('require property accessing', () => {
+        const analyzer = new ScriptAnalyzer();
+        const result = analyzer.analyze({
+            extension: '.ts',
+            contents: `
+                const l10n = require('vscode').110n;
+                l10n.t('${basecaseText}');`
+        });
+        assert.strictEqual(Object.keys(result.bundle).length, 1);
+        assert.strictEqual(result.bundle[basecaseText], basecaseText);
+    });
+
+    it('require variable declared elsewhere for try/catch scenario', () => {
+        const analyzer = new ScriptAnalyzer();
+        const result = analyzer.analyze({
+            extension: '.ts',
+            contents: `
+                let l10n;
+                try {
+                    l10n = require('vscode').110n;
+                } catch (e) {
+                    l10n = { t: (message) => message };
+                }
+
+                // Shouldn't pick up these other BinaryExpressions
+                l10n === undefined;
+                l10n !== undefined;
+                const a = l10n;
+
+                l10n.t('${basecaseText}');`
+        });
+        assert.strictEqual(Object.keys(result.bundle).length, 1);
+        assert.strictEqual(result.bundle[basecaseText], basecaseText);
+    });
+
     it('import basecase', () => {
         const analyzer = new ScriptAnalyzer();
         const result = analyzer.analyze({

@@ -33,6 +33,7 @@ export class ScriptAnalyzer {
         const vscodeOrL10nReferences = imports.reduce<ts.Node[]>((memo, node) => {
             let references: ts.ReferenceEntry[] | undefined;
     
+            // require('vscode') or require('@vscode/l10n')
             if (ts.isCallExpression(node)) {
                 let parent = node.parent;
                 if (ts.isCallExpression(parent) && ts.isIdentifier(parent.expression) && parent.expression.text === '__importStar') {
@@ -47,7 +48,13 @@ export class ScriptAnalyzer {
                     } else {
                         references = service.getReferencesAtPosition(filename, parent.name.end);
                     }
+                // for when the variable is declared elsewhere:
+                // let l10n;
+                // l10n = require('vscode').l10n;
+                } else if (ts.isBinaryExpression(parent) && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+                    references = service.getReferencesAtPosition(filename, parent.left.end);
                 }
+            // import * as vscode from 'vscode' or import * as l10n from '@vscode/l10n'
             } else if (ts.isImportDeclaration(node)&& node.importClause && node.importClause.namedBindings) {
                 if (ts.isNamespaceImport(node.importClause.namedBindings)) {
                     references = service.getReferencesAtPosition(filename, node.importClause.namedBindings.end);
