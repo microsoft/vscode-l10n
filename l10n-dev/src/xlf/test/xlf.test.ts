@@ -94,6 +94,45 @@ describe('XLF', () => {
             assert.strictEqual(result[1]!.messages['id'], 'World');
         });
 
+        it('parses comments correctly by excluding newlines', async () => {
+            const result = await XLF.parse(`
+    <?xml version="1.0" encoding="utf-8"?>
+    <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file original="bundle" source-language="en" datatype="plaintext" target-language="de">
+    <body>
+        <trans-unit id="++CODE++12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126">
+            <source xml:lang="en">Hello</source>
+            <target state="translated">World</target>
+            <note>note1
+note2</note>
+        </trans-unit>
+    </body>
+    </file>
+    <file original="package" source-language="en" datatype="plaintext" target-language="de">
+    <body>
+        <trans-unit id="id">
+            <source xml:lang="en">Hello</source>
+            <target state="translated">World</target>
+            <note>note1
+note2</note>
+        </trans-unit>
+    </body>
+    </file>
+    </xliff>`);
+
+            assert.ok(result);
+            assert.strictEqual(result.length, 2);
+            assert.strictEqual(result[0]!.language, 'de');
+            assert.strictEqual(result[0]!.name, 'bundle');
+            assert.ok(result[0]!.messages['Hello/note1note2']);
+            assert.strictEqual(result[0]!.messages['Hello/note1note2'], 'World');
+
+            assert.strictEqual(result[1]!.language, 'de');
+            assert.strictEqual(result[1]!.name, 'package');
+            assert.ok(result[1]!.messages['id']);
+            assert.strictEqual(result[1]!.messages['id'], 'World');
+        });
+
         it('parses double quotes correctly', async () => {
             const result = await XLF.parse(`
     <?xml version="1.0" encoding="utf-8"?>

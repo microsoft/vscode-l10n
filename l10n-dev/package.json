@@ -1,6 +1,6 @@
 {
 	"name": "@vscode/l10n-dev",
-	"version": "0.0.18",
+	"version": "0.0.19",
 	"description": "Development time npm module to generate strings bundles from TypeScript files",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
