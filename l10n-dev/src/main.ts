@@ -31,12 +31,12 @@ export interface L10nToXlfOptions {
  * @returns l10nJsonFormat
  */
 export function getL10nJson(fileContents: IScriptFile[]): l10nJsonFormat {
-	const bundles = fileContents.map(contents => {
+	const bundles = fileContents.map<l10nJsonFormat>(contents => {
 		const result = analyzer.analyze(contents);
-		return result.bundle;
+		return result;
 	});
 
-	const mergedJson = merge.multi({}, ...bundles);
+	const mergedJson: l10nJsonFormat = merge.multi({}, ...bundles);
 	return mergedJson;
 }
 

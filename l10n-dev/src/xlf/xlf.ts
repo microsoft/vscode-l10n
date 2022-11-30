@@ -65,7 +65,6 @@ export class XLF {
 			this.appendNewLine(`<file original="${file}" source-language="${this.sourceLanguage}" datatype="plaintext"><body>`, 2);
 			const itemsSorted = items.sort((a, b) => a.message > b.message ? 1 : -1);
 			for (const item of itemsSorted) {
-				// package.nls.json files use the id as it is defined by the user so we don't use a placeholder id in that case
 				this.addStringItem(item);
 			}
 			this.appendNewLine('</body></file>', 2);
@@ -99,6 +98,7 @@ export class XLF {
 			throw new Error('No item ID or value specified.');
 		}
 
+		// package.nls.json files use the id as it is defined by the user so we don't use a placeholder id in that case
 		const id = item.id.startsWith(item.message)
 			? hashedIdSignal + crypto.createHash('sha256').update(item.id, 'binary').digest('hex')
 			: item.id;
