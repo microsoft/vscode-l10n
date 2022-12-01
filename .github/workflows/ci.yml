@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.version }}
+
+      # From https://github.com/actions/setup-node/issues/280#issuecomment-1139455898
       - name: Update node-gyp
         if: matrix.os == 'windows-latest'
         run: |
@@ -26,5 +28,6 @@ jobs:
           $NodeModulesPath = $NodeDirPath + "\node_modules\npm\node_modules\npm-lifecycle"
           cd $NodeModulesPath
           npm install node-gyp@8.x
+
       - run: npm ci
       - run: npm test
