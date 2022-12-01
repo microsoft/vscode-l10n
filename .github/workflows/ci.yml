@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: ${{ matrix.version }}
       - name: Update node-gyp
+        if: matrix.os == 'windows-latest'
         run: |
           $WhereNode = Get-Command node | Select-Object -ExpandProperty Definition
           $NodeDirPath = Split-Path $WhereNode -Parent
