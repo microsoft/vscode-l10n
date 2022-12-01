@@ -19,15 +19,12 @@ jobs:
         with:
           node-version: ${{ matrix.version }}
 
-      # From https://github.com/actions/setup-node/issues/280#issuecomment-1139455898
-      - name: Update node-gyp
-        if: matrix.os == 'windows-latest'
+      # From https://github.com/actions/setup-node/issues/68#issuecomment-536238341
+      - name: patch node gyp on windows to support Visual Studio 2019
+        shell: powershell
         run: |
-          $WhereNode = Get-Command node | Select-Object -ExpandProperty Definition
-          $NodeDirPath = Split-Path $WhereNode -Parent
-          $NodeModulesPath = $NodeDirPath + "\node_modules\npm\node_modules\npm-lifecycle"
-          cd $NodeModulesPath
-          npm install node-gyp@8.x
-
+          npm install --global node-gyp@latest
+          npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
+          
       - run: npm ci
       - run: npm test
