@@ -11,7 +11,11 @@ Additionally, for a sample of how to use these tools, see the [l10n-sample](http
 
 ## `vscode.l10n.t`
 
-This API is used for translating strings in your extension's code. It is a part of the main VS Code extension API and is further documented [here](https://code.visualstudio.com/api/references/vscode-api#l10n).
+This API, introduced in VS Code 1.73, is used for translating strings in your extension's code. It is a part of the main VS Code extension API and is further documented [here](https://code.visualstudio.com/api/references/vscode-api#l10n).
+
+> **Note**
+>
+> Make sure you your VS Code engine and `@types/vscode` version in your extension manifest is at least `^1.73.0`.
 
 ## `@vscode/l10n-dev`
 
