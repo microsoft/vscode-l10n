@@ -10,7 +10,7 @@ jobs:
   ci:
     strategy:
       matrix:
-        version: [14, 16]
+        version: [16, 18]
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -18,14 +18,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.version }}
-
-      # From https://github.com/actions/setup-node/issues/68#issuecomment-536238341
-      - name: patch node gyp on windows to support Visual Studio 2019
-        if: matrix.os == 'windows-latest'
-        shell: powershell
-        run: |
-          npm install --global node-gyp@latest
-          npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
           
       - run: npm ci
       - run: npm test
