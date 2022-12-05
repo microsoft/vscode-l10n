@@ -34,6 +34,9 @@ jobs:
           name: tree-sitter-typescript.wasm
           path: l10n-dev/tree-sitter-typescript.wasm
 
+      - run: node test.js
+        working-directory: l10n-dev
+
       - run: npm test
 
   ci-windows:
