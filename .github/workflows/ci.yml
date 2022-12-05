@@ -7,7 +7,30 @@ on:
     branches:
       - main
 jobs:
+  build-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - run: npm run build-wasm
+        working-directory: l10n-dev
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tree-sitter-tsx.wasm
+          path: l10n-dev/tree-sitter-tsx.wasm
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: tree-sitter-typescript.wasm
+          path: l10n-dev/tree-sitter-typescript.wasm
+
   ci:
+    needs: build-wasm
     strategy:
       matrix:
         version: [16, 18]
@@ -15,11 +38,21 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.version }}
-          
+
       - run: npm ci
-      - run: npm run build-wasm
-        working-directory: l10n-dev
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: tree-sitter-tsx.wasm
+          path: l10n-dev/tree-sitter-tsx.wasm
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: tree-sitter-typescript.wasm
+          path: l10n-dev/tree-sitter-typescript.wasm
+
       - run: npm test
