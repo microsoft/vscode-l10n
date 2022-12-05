@@ -100,7 +100,7 @@ export class ScriptAnalyzer {
 					await Parser.init();
 					ScriptAnalyzer.#tsxParser = new Parser();
 					ScriptAnalyzer.#tsxGrammar = await Parser.Language.load(
-						path.join(__dirname, '../../tree-sitter-tsx.wasm')
+						path.resolve(__dirname, '..', '..', 'tree-sitter-tsx.wasm')
 					);
 					ScriptAnalyzer.#tsxParser.setLanguage(ScriptAnalyzer.#tsxGrammar);
 				}
@@ -113,7 +113,7 @@ export class ScriptAnalyzer {
 					await Parser.init();
 					ScriptAnalyzer.#tsParser = new Parser();
 					ScriptAnalyzer.#tsGrammar = await Parser.Language.load(
-						path.join(__dirname, '../../tree-sitter-typescript.wasm')
+						path.resolve(__dirname, '..', '..', 'tree-sitter-typescript.wasm')
 					);
 					ScriptAnalyzer.#tsParser.setLanguage(ScriptAnalyzer.#tsGrammar);
 				}

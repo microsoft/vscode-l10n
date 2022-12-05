@@ -14,7 +14,9 @@
 	"main": "dist/main.js",
 	"types": "dist/main.d.ts",
 	"files": [
-		"dist/*"
+		"dist/*",
+		"tree-sitter-tsx.wasm",
+		"tree-sitter-typescript.wasm"
 	],
 	"bin": {
 		"vscode-l10n-dev": "./dist/cli.js"
