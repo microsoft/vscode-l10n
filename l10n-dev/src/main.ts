@@ -30,11 +30,12 @@ export interface L10nToXlfOptions {
  * @param fileContents - Array of file contents to analyze
  * @returns l10nJsonFormat
  */
-export function getL10nJson(fileContents: IScriptFile[]): l10nJsonFormat {
-	const bundles = fileContents.map<l10nJsonFormat>(contents => {
-		const result = analyzer.analyze(contents);
-		return result;
-	});
+export async function getL10nJson(fileContents: IScriptFile[]): Promise<l10nJsonFormat> {
+	const bundles: l10nJsonFormat[] = [];
+	for (const contents of fileContents) {
+		const result = await analyzer.analyze(contents);
+		bundles.push(result);
+	}
 
 	const mergedJson: l10nJsonFormat = merge.multi({}, ...bundles);
 	return mergedJson;

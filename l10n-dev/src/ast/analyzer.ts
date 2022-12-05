@@ -3,12 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import Parser, { Query, QueryMatch } from "tree-sitter";
+import * as path from 'path';
+import Parser, { QueryMatch } from "web-tree-sitter";
 import { IScriptFile, l10nJsonFormat } from "../common";
 import { importOrRequireQuery, getTQuery, IAlternativeVariableNames } from "./queries";
 
 export class ScriptAnalyzer {
-	static #parser = new Parser();
+	static #tsGrammar: Parser.Language | undefined;
+	static #tsxGrammar: Parser.Language | undefined;
 
 	#getCommentsFromMatch(match: QueryMatch): string[] {
 		const commentCapture = match.captures.find(c => c.name === 'comment');
@@ -72,36 +74,46 @@ export class ScriptAnalyzer {
 			: { t: variableName };
 	}
 
-	analyze({ extension, contents }: IScriptFile): l10nJsonFormat {
+	async analyze({ extension, contents }: IScriptFile): Promise<l10nJsonFormat> {
+		await Parser.init();
+		const parser = new Parser();
 		// what type should this be? The `tree-sitter-typescript` package
 		// doesn't provide types...ironically
-		let grammer: any;
+		let grammer: Parser.Language;
 		switch(extension) {
 			case '.jsx':
 			case '.tsx':
-				// eslint-disable-next-line @typescript-eslint/no-var-requires
-				grammer = require('tree-sitter-typescript').tsx;
+				if (!ScriptAnalyzer.#tsxGrammar) {
+					ScriptAnalyzer.#tsxGrammar = await Parser.Language.load(
+						path.join(__dirname, '../../tree-sitter-tsx.wasm')
+					);
+				}
+				grammer = ScriptAnalyzer.#tsxGrammar;
 				break;
 			case '.js':
 			case '.ts':
-				// eslint-disable-next-line @typescript-eslint/no-var-requires
-				grammer = require('tree-sitter-typescript').typescript;
+				if (!ScriptAnalyzer.#tsGrammar) {
+					ScriptAnalyzer.#tsGrammar = await Parser.Language.load(
+						path.join(__dirname, '../../tree-sitter-typescript.wasm')
+					);
+				}
+				grammer = ScriptAnalyzer.#tsGrammar;
 				break;
 
 			default:
 				throw new Error(`File format '${extension}' not supported.`);
 		}
 
-		ScriptAnalyzer.#parser.setLanguage(grammer);
-		const parsed = ScriptAnalyzer.#parser.parse(contents);
+		parser.setLanguage(grammer);
+		const parsed = parser.parse(contents);
 
-		const importQuery = new Query(grammer, importOrRequireQuery);
+		const importQuery = grammer.query(importOrRequireQuery);
 		const importMatches = importQuery.matches(parsed.rootNode);
 
 		const bundle: l10nJsonFormat = {};
 		for (const importMatch of importMatches) {
 			const importDetails = this.#getImportDetails(importMatch);
-			const tQuery = new Query(grammer, getTQuery(importDetails));
+			const tQuery = grammer.query(getTQuery(importDetails));
 			const matches = tQuery.matches(parsed.rootNode);
 
 			for (const match of matches) {

@@ -20,4 +20,6 @@ jobs:
           node-version: ${{ matrix.version }}
           
       - run: npm ci
+      - run: npm run build-wasm
+        working-directory: l10n-dev
       - run: npm test

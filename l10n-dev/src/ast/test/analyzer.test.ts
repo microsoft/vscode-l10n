@@ -5,9 +5,9 @@ describe('ScriptAnalyzer', () => {
     const basecaseText = 'Hello World' as string;
 
     context('importing vscode', () => {
-        it('require', () => {
+        it('require', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     const vscode = require('vscode');
@@ -17,9 +17,9 @@ describe('ScriptAnalyzer', () => {
             assert.strictEqual(result![basecaseText]!, basecaseText);
         });
     
-        it('require js', () => {
+        it('require js', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.js',
                 contents: `
                     const vscode = require('vscode');
@@ -29,9 +29,9 @@ describe('ScriptAnalyzer', () => {
             assert.strictEqual(result![basecaseText]!, basecaseText);
         });
     
-        it('require object binding', () => {
+        it('require object binding', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     const { l10n } = require('vscode');
@@ -41,9 +41,9 @@ describe('ScriptAnalyzer', () => {
             assert.strictEqual(result![basecaseText]!, basecaseText);
         });
     
-        it('require property accessing', () => {
+        it('require property accessing', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     const l10n = require('vscode').l10n;
@@ -53,9 +53,9 @@ describe('ScriptAnalyzer', () => {
             assert.strictEqual(result![basecaseText]!, basecaseText);
         });
     
-        it('require variable declared elsewhere for try/catch scenario', () => {
+        it('require variable declared elsewhere for try/catch scenario', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     let l10n;
@@ -76,9 +76,9 @@ describe('ScriptAnalyzer', () => {
             assert.strictEqual(result![basecaseText]!, basecaseText);
         });
     
-        it('import namespace', () => {
+        it('import namespace', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     import * as vscode from 'vscode';
@@ -88,9 +88,9 @@ describe('ScriptAnalyzer', () => {
             assert.strictEqual(result![basecaseText]!, basecaseText);
         });
     
-        it('import named imports', () => {
+        it('import named imports', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     import { l10n } from 'vscode';
@@ -100,9 +100,9 @@ describe('ScriptAnalyzer', () => {
             assert.strictEqual(result![basecaseText]!, basecaseText);
         });
     
-        it('import newlines named imports', () => {
+        it('import newlines named imports', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     import {
@@ -130,9 +130,9 @@ describe('ScriptAnalyzer', () => {
     });
 
     context('importing @vscode/l10n', () => {
-        it('import namespace', () => {
+        it('import namespace', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     import * as l10n from '@vscode/l10n';
@@ -142,9 +142,9 @@ describe('ScriptAnalyzer', () => {
             assert.strictEqual(result![basecaseText]!, basecaseText);
         });
 
-        it('@vscode/l10n import namespace tsx', () => {
+        it('@vscode/l10n import namespace tsx', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.tsx',
                 contents: `
                     import React from 'react';
@@ -159,9 +159,9 @@ describe('ScriptAnalyzer', () => {
             assert.strictEqual(result![basecaseText]!, basecaseText);
         });
     
-        it('@vscode/l10n import namespace jsx', () => {
+        it('@vscode/l10n import namespace jsx', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.jsx',
                 contents: `
                     import React from 'react';
@@ -178,11 +178,11 @@ describe('ScriptAnalyzer', () => {
     });
 
     context('usage of l10n.t()', () => {
-        it('args are object with comment as string', () => {
+        it('args are object with comment as string', async () => {
             const analyzer = new ScriptAnalyzer();
             const comment = 'This is a comment';
             const key = `${basecaseText}/${comment}`;
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     import { l10n } from 'vscode';
@@ -198,11 +198,11 @@ describe('ScriptAnalyzer', () => {
             assert.strictEqual((result[key]! as { comment: string[] }).comment[0], comment);
         });
     
-        it('args are object with comments as array', () => {
+        it('args are object with comments as array', async () => {
             const analyzer = new ScriptAnalyzer();
             const comment = 'This is a comment';
             const key = `${basecaseText}/${comment}`;
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     import { l10n } from 'vscode';
@@ -218,9 +218,9 @@ describe('ScriptAnalyzer', () => {
             assert.strictEqual((result[key]! as { comment: string[] }).comment[0], comment);
         });
 
-        it('@vscode/l10n does not pickup config calls', () => {
+        it('@vscode/l10n does not pickup config calls', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     import * as l10n from '@vscode/l10n';
@@ -229,9 +229,9 @@ describe('ScriptAnalyzer', () => {
             assert.strictEqual(Object.keys(result!).length, 0);
         });
 
-        it('does not count other t functions', () => {
+        it('does not count other t functions', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = analyzer.analyze({
+            const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     import * as i18next from 'i18next';
