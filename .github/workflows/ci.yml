@@ -57,12 +57,12 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: tree-sitter-tsx.wasm
-          path: l10n-dev/tree-sitter-tsx.wasm
+          path: l10n-dev
 
       - uses: actions/download-artifact@v3
         with:
           name: tree-sitter-typescript.wasm
-          path: l10n-dev/tree-sitter-typescript.wasm
+          path: l10n-dev
 
       - run: node test.js
         working-directory: l10n-dev
