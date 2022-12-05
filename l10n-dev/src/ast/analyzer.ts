@@ -9,6 +9,8 @@ import { IScriptFile, l10nJsonFormat } from "../common";
 import { importOrRequireQuery, getTQuery, IAlternativeVariableNames } from "./queries";
 
 export class ScriptAnalyzer {
+	static #tsParser: Parser | undefined;
+	static #tsxParser: Parser | undefined;
 	static #tsGrammar: Parser.Language | undefined;
 	static #tsxGrammar: Parser.Language | undefined;
 
@@ -75,45 +77,49 @@ export class ScriptAnalyzer {
 	}
 
 	async analyze({ extension, contents }: IScriptFile): Promise<l10nJsonFormat> {
-		await Parser.init();
-		const parser = new Parser();
-		// what type should this be? The `tree-sitter-typescript` package
-		// doesn't provide types...ironically
-		let grammer: Parser.Language;
+		let parser, grammar;
 		switch(extension) {
 			case '.jsx':
 			case '.tsx':
-				if (!ScriptAnalyzer.#tsxGrammar) {
+				if (!ScriptAnalyzer.#tsxParser) {
+					await Parser.init();
+					ScriptAnalyzer.#tsxParser = new Parser();
 					ScriptAnalyzer.#tsxGrammar = await Parser.Language.load(
 						path.join(__dirname, '../../tree-sitter-tsx.wasm')
 					);
+					ScriptAnalyzer.#tsxParser.setLanguage(ScriptAnalyzer.#tsxGrammar);
 				}
-				grammer = ScriptAnalyzer.#tsxGrammar;
+				grammar = ScriptAnalyzer.#tsxGrammar!;
+				parser = ScriptAnalyzer.#tsxParser!;
 				break;
 			case '.js':
 			case '.ts':
-				if (!ScriptAnalyzer.#tsGrammar) {
+				if (!ScriptAnalyzer.#tsParser) {
+					await Parser.init();
+					ScriptAnalyzer.#tsParser = new Parser();
 					ScriptAnalyzer.#tsGrammar = await Parser.Language.load(
 						path.join(__dirname, '../../tree-sitter-typescript.wasm')
 					);
+					ScriptAnalyzer.#tsParser.setLanguage(ScriptAnalyzer.#tsGrammar);
 				}
-				grammer = ScriptAnalyzer.#tsGrammar;
+				grammar = ScriptAnalyzer.#tsGrammar!;
+				parser = ScriptAnalyzer.#tsParser!;
 				break;
 
 			default:
 				throw new Error(`File format '${extension}' not supported.`);
 		}
 
-		parser.setLanguage(grammer);
+		parser.setLanguage(grammar);
 		const parsed = parser.parse(contents);
 
-		const importQuery = grammer.query(importOrRequireQuery);
+		const importQuery = grammar.query(importOrRequireQuery);
 		const importMatches = importQuery.matches(parsed.rootNode);
 
 		const bundle: l10nJsonFormat = {};
 		for (const importMatch of importMatches) {
 			const importDetails = this.#getImportDetails(importMatch);
-			const tQuery = grammer.query(getTQuery(importDetails));
+			const tQuery = grammar.query(getTQuery(importDetails));
 			const matches = tQuery.matches(parsed.rootNode);
 
 			for (const match of matches) {

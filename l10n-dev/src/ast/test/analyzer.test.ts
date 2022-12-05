@@ -1,10 +1,10 @@
 import * as assert from 'assert';
 import { ScriptAnalyzer } from '../analyzer';
 
-describe('ScriptAnalyzer', () => {
+describe('ScriptAnalyzer', async () => {
     const basecaseText = 'Hello World' as string;
 
-    context('importing vscode', () => {
+    context('importing vscode', async () => {
         it('require', async () => {
             const analyzer = new ScriptAnalyzer();
             const result = await analyzer.analyze({
@@ -129,7 +129,7 @@ describe('ScriptAnalyzer', () => {
         });
     });
 
-    context('importing @vscode/l10n', () => {
+    context('importing @vscode/l10n', async () => {
         it('import namespace', async () => {
             const analyzer = new ScriptAnalyzer();
             const result = await analyzer.analyze({
@@ -177,7 +177,7 @@ describe('ScriptAnalyzer', () => {
         });
     });
 
-    context('usage of l10n.t()', () => {
+    context('usage of l10n.t()', async () => {
         it('args are object with comment as string', async () => {
             const analyzer = new ScriptAnalyzer();
             const comment = 'This is a comment';
