@@ -7,7 +7,7 @@ import assert from 'assert';
 import { getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf } from "../main";
 
 describe('main', () => {
-	context('await getL10nJson', () => {
+	context('getL10nJson', () => {
 		it('works for ts', async () => {
 			const result = await getL10nJson([{
 				extension: '.ts',
