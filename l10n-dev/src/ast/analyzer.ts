@@ -8,6 +8,21 @@ import Parser, { QueryMatch } from "web-tree-sitter";
 import { IScriptFile, l10nJsonFormat } from "../common";
 import { importOrRequireQuery, getTQuery, IAlternativeVariableNames } from "./queries";
 
+// Workaround for https://github.com/tree-sitter/tree-sitter/issues/1765
+try {
+	const matches = /^v(\d+).\d+.\d+$/.exec(process.version);
+	if (matches && matches[1]) {
+		const majorVersion = matches[1];
+		if (parseInt(majorVersion) >= 18) {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			//@ts-ignore
+			delete WebAssembly.instantiateStreaming
+		}
+	}
+} catch {
+	// ignore any errors here
+}
+
 export class ScriptAnalyzer {
 	static #tsParser: Parser | undefined;
 	static #tsxParser: Parser | undefined;
