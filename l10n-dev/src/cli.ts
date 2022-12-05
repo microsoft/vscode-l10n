@@ -31,8 +31,8 @@ yargs(hideBin(process.argv))
 			default: '.',
 			describe: 'Output directory'
 		});
-	}, function (argv) {
-		l10nExportStrings(argv.path as string[], argv.outDir as string);
+	}, async function (argv) {
+		await l10nExportStrings(argv.path as string[], argv.outDir as string);
 	})
 .command(
 	'generate-xlf [args] <path..>',
@@ -77,8 +77,8 @@ yargs(hideBin(process.argv))
 			default: '.',
 			describe: 'Output directory that will contain the l10n.<language>.json files'
 		});
-	}, function (argv) {
-		l10nImportXlf(argv.path as string[], argv.outDir as string);
+	}, async function (argv) {
+		await l10nImportXlf(argv.path as string[], argv.outDir as string);
 	})
 .command(
 	'generate-pseudo [args] <path..>',
@@ -102,7 +102,7 @@ yargs(hideBin(process.argv))
 	})
 .help().argv;
 
-function l10nExportStrings(paths: string[], outDir: string): void {
+async function l10nExportStrings(paths: string[], outDir: string): Promise<void> {
 	console.log('Searching for TypeScript/JavaScript files...');
 	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
 	const tsFileContents = matches.reduce<IScriptFile[]>((prev, curr) => {
@@ -134,7 +134,7 @@ function l10nExportStrings(paths: string[], outDir: string): void {
 	}
 
 	console.log(`Found ${tsFileContents.length} TypeScript files. Extracting strings...`);
-	const jsonResult = getL10nJson(tsFileContents);
+	const jsonResult = await getL10nJson(tsFileContents);
 
 	if (!Object.keys(jsonResult).length) {
 		console.log('No strings found. Skipping writing to a bundle.l10n.json.');
