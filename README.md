@@ -92,6 +92,25 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
+### Build steps
+
+First, install all of the dependencies using `npm install`.
+
+If you plan on working with `l10n-dev` it has one additional step. This package requires building the tree-sitter WASM files for the two grammars that we consume. To do this, you can run the following commands:
+
+```
+cd l10n-dev
+npm run build-wasm
+```
+
+> **Note**
+>
+> On macOS or Windows, you will need to have Docker running in order to build the WASM files. The CLI runs a linux container to build the WASM files.
+
+If you've done this correctly, you should see two `.wasm` files in the `l10n-dev` folder.
+
+At this point you can run the build task in the repo to build in the background and run the tests with `npm test`.
+
 ## Trademarks
 
 This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 

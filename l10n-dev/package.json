@@ -1,6 +1,6 @@
 {
 	"name": "@vscode/l10n-dev",
-	"version": "0.0.19",
+	"version": "0.0.20",
 	"description": "Development time npm module to generate strings bundles from TypeScript files",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
@@ -14,7 +14,9 @@
 	"main": "dist/main.js",
 	"types": "dist/main.d.ts",
 	"files": [
-		"dist/*"
+		"dist/*",
+		"tree-sitter-tsx.wasm",
+		"tree-sitter-typescript.wasm"
 	],
 	"bin": {
 		"vscode-l10n-dev": "./dist/cli.js"
@@ -34,17 +36,22 @@
 		"mocha": "^10.0.0",
 		"mock-fs": "^5.1.4",
 		"rimraf": "^3.0.2",
+		"tree-sitter-cli": "^0.20.7",
+		"tree-sitter-typescript": "^0.20.1",
 		"ts-node": "^10.9.1"
 	},
 	"dependencies": {
 		"deepmerge-json": "^1.5.0",
 		"glob": "^8.0.3",
 		"pseudo-localization": "^2.4.0",
-		"typescript": "^4.7.4",
+		"web-tree-sitter": "^0.20.7",
 		"xml2js": "^0.4.23",
 		"yargs": "^17.5.1"
 	},
 	"scripts": {
+		"build-wasm-typescript": "tree-sitter build-wasm ./node_modules/tree-sitter-typescript/typescript",
+		"build-wasm-tsx": "tree-sitter build-wasm ./node_modules/tree-sitter-typescript/tsx",
+		"build-wasm": "npm run build-wasm-typescript && npm run build-wasm-tsx",
 		"clean": "rimraf dist && rimraf lib",
 		"compile": "npm run clean && tsc --emitDeclarationOnly --outDir lib && node .esbuild.config.js",
 		"lint": "eslint src --ext ts",

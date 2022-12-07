@@ -60,3 +60,6 @@ jspm_packages/
 
 dist
 lib
+
+tree-sitter-tsx.wasm
+tree-sitter-typescript.wasm
