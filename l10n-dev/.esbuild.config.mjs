@@ -1,7 +1,11 @@
-const esbuild = require('esbuild');
-const path = require('path');
-const { Extractor, ExtractorConfig } = require('@microsoft/api-extractor');
-const { dependencies, peerDependencies } = require('./package.json')
+import esbuild from 'esbuild';
+import path from 'path';
+import copy from 'esbuild-copy-files-plugin';
+import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const { dependencies, peerDependencies } = require('./package.json');
 
 const watch = process.argv.includes('--watch');
 const type = watch ? 'watch' : 'compile';
@@ -31,6 +35,13 @@ Promise.all([
 		...sharedConfig,
 		entryPoints: ['src/main.ts'],
 		outfile: 'dist/main.js',
+		plugins: [
+			copy({
+				source: ['./src/ast/tree-sitter-tsx.wasm', './src/ast/tree-sitter-typescript.wasm'],
+				target: './dist',
+				copyWithFolder: false
+			})
+		]
 	}),
 	esbuild.build({
 		...sharedConfig,
