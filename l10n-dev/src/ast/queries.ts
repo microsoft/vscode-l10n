@@ -75,18 +75,18 @@ export function getTQuery({ vscode, l10n, t}: IAlternativeVariableNames): string
 		property: (property_identifier) @t (#eq? @t ${t ?? 't'})
 	)
 	arguments: [
-		(arguments . (string (string_fragment) @message))
+		(arguments . (string) @message)
 		(arguments . (number) @message)
 		(arguments . (object
 			(pair 
 				key: (property_identifier) @message-prop (#eq? @message-prop message)
-				value: (string (string_fragment) @message)
+				value: (string) @message
 			)
 			(pair 
 				key: (property_identifier) @comment-prop (#eq? @comment-prop comment)
 				value: [
-					(string (string_fragment) @comment)
-					(array) @comment
+					((string) @comment)
+					((array) @comment)
 				]
 			)
 		))

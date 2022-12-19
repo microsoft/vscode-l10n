@@ -31,25 +31,36 @@ export class ScriptAnalyzer {
 
 	#getCommentsFromMatch(match: QueryMatch): string[] {
 		const commentCapture = match.captures.find(c => c.name === 'comment');
-		const comment: string[] = [];
-		if (commentCapture) {
-			commentCapture.node.childCount
-				? commentCapture.node.children.filter(c => c.type === 'string').forEach(c => comment.push(c.children[1]!.text))
-				: comment.push(commentCapture.node.text);
+		if (!commentCapture) {
+			return [];
 		}
-		return comment;
+		if (commentCapture.node.type === 'string') {
+			const text = commentCapture.node.text;
+			// remove quotes
+			return [text.substring(1, text.length - 1)];
+		}
+
+		// we have an array of comments
+		return commentCapture.node.children
+			.filter(c => c.type === 'string')
+			.map(c => c.children[1]!.text);
 	}
 
-	#getStringFromMatch(match: QueryMatch, id: string): string | undefined {
+	#getStringFromMatch(match: QueryMatch, id: string, removeQuotes: boolean): string | undefined {
 		const capture = match.captures.find(c => c.name === id);
-		return capture ? capture.node.text : undefined;
+		if (!capture) {
+			return undefined;
+		}
+		const text = capture.node.text;
+		// remove quotes
+		return removeQuotes ? text.substring(1, text.length - 1) : text;
 	}
 
 	#getImportDetails(match: QueryMatch): IAlternativeVariableNames {
-		const importArg = this.#getStringFromMatch(match, 'importArg');
+		const importArg = this.#getStringFromMatch(match, 'importArg', false);
 		// we have imported vscode or @vscode/l10n
 		if (importArg) {
-			const namespace = this.#getStringFromMatch(match, 'namespace');
+			const namespace = this.#getStringFromMatch(match, 'namespace', false);
 			if (namespace) {
 				return importArg === 'vscode'
 					// import * as foo from 'vscode'
@@ -57,7 +68,7 @@ export class ScriptAnalyzer {
 					// import * as foo from '@vscode/l10n'
 					: { l10n: namespace };
 			}
-			const namedImportAlias = this.#getStringFromMatch(match, 'namedImportAlias');
+			const namedImportAlias = this.#getStringFromMatch(match, 'namedImportAlias', false);
 			return importArg === 'vscode'
 				// import { l10n as foo } from 'vscode' or import { l10n } from 'vscode'
 				? { l10n: namedImportAlias }
@@ -66,9 +77,9 @@ export class ScriptAnalyzer {
 		}
 
 		// we have required vscode or @vscode/l10n
-		const requireArg = this.#getStringFromMatch(match, 'requireArg');
-		const propertyIdentifier = this.#getStringFromMatch(match, 'propertyIdentifier');
-		const variableName = this.#getStringFromMatch(match, 'variableName');
+		const requireArg = this.#getStringFromMatch(match, 'requireArg', false);
+		const propertyIdentifier = this.#getStringFromMatch(match, 'propertyIdentifier', false);
+		const variableName = this.#getStringFromMatch(match, 'variableName', false);
 		if (!propertyIdentifier) {
 			return requireArg === 'vscode'
 				// const a = require('vscode') or let a; a = require('vscode')
@@ -77,7 +88,7 @@ export class ScriptAnalyzer {
 				: { l10n: variableName };
 		}
 		if (!variableName) {
-			const propertyIdentifierAlias = this.#getStringFromMatch(match, 'propertyIdentifierAlias');
+			const propertyIdentifierAlias = this.#getStringFromMatch(match, 'propertyIdentifierAlias', false);
 			return requireArg === 'vscode'
 				// const { l10n } = require('vscode') or const { l10n: foo } = require('vscode')
 				? { l10n: propertyIdentifierAlias }
@@ -134,11 +145,12 @@ export class ScriptAnalyzer {
 		const bundle: l10nJsonFormat = {};
 		for (const importMatch of importMatches) {
 			const importDetails = this.#getImportDetails(importMatch);
-			const tQuery = grammar.query(getTQuery(importDetails));
+			const tQuerys = getTQuery(importDetails);
+			const tQuery = grammar.query(tQuerys);
 			const matches = tQuery.matches(parsed.rootNode);
 
 			for (const match of matches) {
-				const message = this.#getStringFromMatch(match, 'message')!;
+				const message = this.#getStringFromMatch(match, 'message', true)!;
 				const comment = this.#getCommentsFromMatch(match);
 
 				if (comment.length) {
