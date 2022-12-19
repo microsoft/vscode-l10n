@@ -172,10 +172,6 @@ note2</note>
     <file original="bundle" source-language="en" datatype="plaintext" target-language="de">
     <body>
         <trans-unit id="++CODE++73e7b6f86214bc78ee505fb5f7d4fb97cfa99924a67ca3105113c9a3d52f8fef">
-            <source xml:lang="en">&#10;&#10;</source>
-            <target state="translated">&#10;&#10;</target>
-        </trans-unit>
-        <trans-unit id="++CODE++73e7b6f86214bc78ee505fb5f7d4fb97cfa99924a67ca3105113c9a3d52f8fef">
             <source xml:lang="en">a string with two newlines&#10;&#10;</source>
             <target state="translated">a string with two newlines&#10;&#10;</target>
         </trans-unit>
