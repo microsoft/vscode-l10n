@@ -213,6 +213,12 @@ function encodeEntities(value: string): string {
 			case '&':
 				result.push('&amp;');
 				break;
+			case '\n':
+				result.push('&#10;');
+				break;
+			case '\r':
+				result.push('&#13;');
+				break;
 			default:
 				result.push(ch);
 		}
@@ -226,5 +232,7 @@ function decodeEntities(value: string): string {
 		.replace(/&apos;/g, "'")
 		.replace(/&lt;/g, '<')
 		.replace(/&gt;/g, '>')
+		.replace(/&#10;/g, '\n')
+		.replace(/&#13;/g, '\r')
 		.replace(/&amp;/g, '&');
 }
