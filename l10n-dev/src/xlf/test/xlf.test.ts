@@ -40,21 +40,50 @@ describe('XLF', () => {
             const xlf = new XLF();
             // Use to of each to ensure we don't accidentally just grab the first one
             xlf.addFile('bundle', {
+                "\n\n": "\n\n",
+                "\n\n/\n\n": { message: "\n\n", comment: ["\n\n"] },
                 '""': '""',
+                '""/""': { message: '""', comment: ['""'] },
                 "''": "''",
+                "''/''": { message: "''", comment: ["''"] },
                 '<<': '<<',
+                '<</<<': { message: '<<', comment: ['<<'] },
                 '>>': '>>',
-                '&&': '&&'
+                '>>/>>': { message: '>>', comment: ['>>'] },
+                '&&': '&&',
+                '&&/&&': { message: '&&', comment: ['&&'] },
             });
             const result = xlf.toString();
             const header = '<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="bundle" source-language="en" datatype="plaintext"><body>';
+            const newlinesWithNote = '\r\n    <trans-unit id="++CODE++ec41f82e274feb6146cc19db3b5ace24ec63b9be47e037030a8264d0553b77b8">\r\n      <source xml:lang="en">\n\n</source>\r\n      <note>\n\n</note>\r\n    </trans-unit>';
+            const newlines = '\r\n    <trans-unit id="++CODE++75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070">\r\n      <source xml:lang="en">\n\n</source>\r\n    </trans-unit>';
+            const ampWithNote = '\r\n    <trans-unit id="++CODE++8adb215d03ef89d54f22914a835e3362278c44a6ec6c2ddc4b53d7183c00119e">\r\n      <source xml:lang="en">&amp;&amp;</source>\r\n      <note>&amp;&amp;</note>\r\n    </trans-unit>';
             const amp = '\r\n    <trans-unit id="++CODE++360d9d079c933408511677541ccd65fece76a0c52492ff7b4968b321ec254ecd">\r\n      <source xml:lang="en">&amp;&amp;</source>\r\n    </trans-unit>';
+            const apostrophesWithNote = '\r\n    <trans-unit id="++CODE++500f464aca256d905f8cd110e037e679706a17bb413d761d727433e28634e5ec">\r\n      <source xml:lang="en">&apos;&apos;</source>\r\n      <note>&apos;&apos;</note>\r\n    </trans-unit>';
             const apostrophes = '\r\n    <trans-unit id="++CODE++c9e4e11220410db06ceafcd46bac2289fdb40be0a3f35536753e496d56a8e12a">\r\n      <source xml:lang="en">&apos;&apos;</source>\r\n    </trans-unit>';
+            const greaterThanWithNote = '\r\n    <trans-unit id="++CODE++421c08a7a1a230d1dd2db989a4c31e78b0741a567ef42ada44ddb2ac9b222079">\r\n      <source xml:lang="en">&gt;&gt;</source>\r\n      <note>&gt;&gt;</note>\r\n    </trans-unit>';
             const greaterThan = '\r\n    <trans-unit id="++CODE++e3fb2b34d67c2a94b8080121fcd2093339b17c74871275968251fead90e542f7">\r\n      <source xml:lang="en">&gt;&gt;</source>\r\n    </trans-unit>';
+            const lessThanWithNote = '\r\n    <trans-unit id="++CODE++82fd3f6886a86668845b9a769166e09dea894ec6c033e7d5db58f716a13f7a1d">\r\n      <source xml:lang="en">&lt;&lt;</source>\r\n      <note>&lt;&lt;</note>\r\n    </trans-unit>';
             const lessThan = '\r\n    <trans-unit id="++CODE++818e5b6ec86af43da253e44986ed7260db48f2f972a3fafc3575d1a4a088ac3f">\r\n      <source xml:lang="en">&lt;&lt;</source>\r\n    </trans-unit>';
+            const quotesWithNote = '\r\n    <trans-unit id="++CODE++a09b5ca601ce81d6a5aa65efb38a0bdf9743044b2e83ca2231ad72e8f4d7e759">\r\n      <source xml:lang="en">&quot;&quot;</source>\r\n      <note>&quot;&quot;</note>\r\n    </trans-unit>';
             const quotes = '\r\n    <trans-unit id="++CODE++eac56912e89dd33f3372f8cb3bc427c679f2bfe57eb88c129e1567e32ef6397b">\r\n      <source xml:lang="en">&quot;&quot;</source>\r\n    </trans-unit>';
             const footer = '\r\n  </body></file>\r\n</xliff>';
-            assert.strictEqual(result, header + amp + apostrophes + greaterThan + lessThan + quotes + footer);
+            assert.strictEqual(result,
+                header
+                + newlinesWithNote
+                + newlines
+                + ampWithNote
+                + amp
+                + apostrophesWithNote
+                + apostrophes
+                + greaterThanWithNote
+                + greaterThan
+                + lessThanWithNote
+                + lessThan
+                + quotesWithNote
+                + quotes
+                + footer
+            );
         });
     });
 

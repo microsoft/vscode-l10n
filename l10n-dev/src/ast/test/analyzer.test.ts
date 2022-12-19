@@ -239,5 +239,34 @@ describe('ScriptAnalyzer', async () => {
             });
             assert.strictEqual(Object.keys(result!).length, 0);
         });
+
+        it('handles newlines in message in t calls', async () => {
+            const analyzer = new ScriptAnalyzer();
+            const result = await analyzer.analyze({
+                extension: '.ts',
+                contents: `
+                import { l10n } from 'vscode';
+                l10n.t('foo\nbar');`
+            });
+            assert.strictEqual(Object.keys(result!).length, 1);
+            assert.strictEqual(result!['foo\nbar']!, 'foo\nbar');
+        });
+
+        it('handles newlines in comment in t calls', async () => {
+            const analyzer = new ScriptAnalyzer();
+            const result = await analyzer.analyze({
+                extension: '.ts',
+                contents: `
+                import { l10n } from 'vscode';
+                l10n.t({
+                    message: 'foobar',
+                    comment: ['foo\nbar', 'bar\nfoo']
+                });`
+            });
+            assert.strictEqual(Object.keys(result!).length, 1);
+            assert.strictEqual((result!['foobar/foo\nbarbar\nfoo']! as { message: string }).message, 'foobar');
+            assert.strictEqual((result!['foobar/foo\nbarbar\nfoo']! as { comment: string[] }).comment[0], 'foo\nbar');
+            assert.strictEqual((result!['foobar/foo\nbarbar\nfoo']! as { comment: string[] }).comment[1], 'bar\nfoo');
+        });
     });
 });
