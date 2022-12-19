@@ -34,6 +34,9 @@ extends:
           - script: npm ci
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
             displayName: Install dependencies
+          - script: npm run build-wasm
+            workingDirectory: $(Build.SourcesDirectory)/l10n-dev
+            displayName: Build wasm grammars
           - script: npm run compile
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
             displayName: Compile npm package
@@ -43,15 +46,14 @@ extends:
             nodeVersions:
               - 14.x
               - 16.x
-          - name: Windows
-            nodeVersions:
-              - 14.x
-              - 16.x
 
         testSteps:
           - script: npm ci
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
             displayName: Install dependencies
+          - script: npm run build-wasm
+            workingDirectory: $(Build.SourcesDirectory)/l10n-dev
+            displayName: Build wasm
           - script: npm run compile
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
             displayName: Compile npm package
