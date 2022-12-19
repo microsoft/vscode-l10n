@@ -111,7 +111,7 @@ export class ScriptAnalyzer {
 					await Parser.init();
 					ScriptAnalyzer.#tsxParser = new Parser();
 					ScriptAnalyzer.#tsxGrammar = await Parser.Language.load(
-						path.resolve(__dirname, '..', '..', 'tree-sitter-tsx.wasm')
+						path.resolve(__dirname, 'tree-sitter-tsx.wasm')
 					);
 					ScriptAnalyzer.#tsxParser.setLanguage(ScriptAnalyzer.#tsxGrammar);
 				}
@@ -124,7 +124,7 @@ export class ScriptAnalyzer {
 					await Parser.init();
 					ScriptAnalyzer.#tsParser = new Parser();
 					ScriptAnalyzer.#tsGrammar = await Parser.Language.load(
-						path.resolve(__dirname, '..', '..', 'tree-sitter-typescript.wasm')
+						path.resolve(__dirname, 'tree-sitter-typescript.wasm')
 					);
 					ScriptAnalyzer.#tsParser.setLanguage(ScriptAnalyzer.#tsGrammar);
 				}
@@ -136,7 +136,6 @@ export class ScriptAnalyzer {
 				throw new Error(`File format '${extension}' not supported.`);
 		}
 
-		parser.setLanguage(grammar);
 		const parsed = parser.parse(contents);
 
 		const importQuery = grammar.query(importOrRequireQuery);

@@ -14,9 +14,7 @@
 	"main": "dist/main.js",
 	"types": "dist/main.d.ts",
 	"files": [
-		"dist/*",
-		"tree-sitter-tsx.wasm",
-		"tree-sitter-typescript.wasm"
+		"dist/*"
 	],
 	"bin": {
 		"vscode-l10n-dev": "./dist/cli.js"
@@ -32,6 +30,7 @@
 		"@typescript-eslint/eslint-plugin": "^4.28.0",
 		"@typescript-eslint/parser": "^4.28.0",
 		"esbuild": "^0.15.5",
+		"esbuild-copy-files-plugin": "^1.1.0",
 		"eslint": "^7.29.0",
 		"mocha": "^10.0.0",
 		"mock-fs": "^5.1.4",
@@ -49,13 +48,13 @@
 		"yargs": "^17.5.1"
 	},
 	"scripts": {
-		"build-wasm-typescript": "tree-sitter build-wasm ./node_modules/tree-sitter-typescript/typescript",
-		"build-wasm-tsx": "tree-sitter build-wasm ./node_modules/tree-sitter-typescript/tsx",
+		"build-wasm-typescript": "tree-sitter build-wasm ./node_modules/tree-sitter-typescript/typescript && mv ./tree-sitter-typescript.wasm ./src/ast/tree-sitter-typescript.wasm",
+		"build-wasm-tsx": "tree-sitter build-wasm ./node_modules/tree-sitter-typescript/tsx && mv ./tree-sitter-tsx.wasm ./src/ast/tree-sitter-tsx.wasm",
 		"build-wasm": "npm run build-wasm-typescript && npm run build-wasm-tsx",
 		"clean": "rimraf dist && rimraf lib",
-		"compile": "npm run clean && tsc --emitDeclarationOnly --outDir lib && node .esbuild.config.js",
+		"compile": "npm run clean && tsc --emitDeclarationOnly --outDir lib && node .esbuild.config.mjs",
 		"lint": "eslint src --ext ts",
-		"watch": "node .esbuild.config.js --watch",
+		"watch": "node .esbuild.config.mjs --watch",
 		"test": "mocha",
 		"prepublishOnly": "npm run lint && npm run compile && npm run test"
 	}
