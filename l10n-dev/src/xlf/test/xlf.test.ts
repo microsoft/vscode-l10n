@@ -42,6 +42,7 @@ describe('XLF', () => {
             xlf.addFile('bundle', {
                 "\n\n": "\n\n",
                 "\n\n/\n\n": { message: "\n\n", comment: ["\n\n"] },
+                "\r\n\r\n": "\r\n\r\n",
                 '""': '""',
                 '""/""': { message: '""', comment: ['""'] },
                 "''": "''",
@@ -55,8 +56,9 @@ describe('XLF', () => {
             });
             const result = xlf.toString();
             const header = '<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="bundle" source-language="en" datatype="plaintext"><body>';
-            const newlinesWithNote = '\r\n    <trans-unit id="++CODE++ec41f82e274feb6146cc19db3b5ace24ec63b9be47e037030a8264d0553b77b8">\r\n      <source xml:lang="en">\n\n</source>\r\n      <note>\n\n</note>\r\n    </trans-unit>';
-            const newlines = '\r\n    <trans-unit id="++CODE++75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070">\r\n      <source xml:lang="en">\n\n</source>\r\n    </trans-unit>';
+            const newlinesWithNote = '\r\n    <trans-unit id="++CODE++f0efbf5a90bfea395bc03024e3af8b5451821c0bbee0d617d71e9766627c3eab">\r\n      <source xml:lang="en">&#10;&#10;</source>\r\n      <note>&#10;&#10;</note>\r\n    </trans-unit>';
+            const newlines = '\r\n    <trans-unit id="++CODE++ccaaefd46dcc7c0565c2b31eab24ed096f3ab881e684b99f226e29640a37ee06">\r\n      <source xml:lang="en">&#10;&#10;</source>\r\n    </trans-unit>';
+            const carriageReturnNewlines = '\r\n    <trans-unit id="++CODE++9b8a4f9c17ad7d2213564b4c289a8fba5e3ae7dbc88fd4e319f50a9b26c5b4b4">\r\n      <source xml:lang="en">&#13;&#10;&#13;&#10;</source>\r\n    </trans-unit>';
             const ampWithNote = '\r\n    <trans-unit id="++CODE++8adb215d03ef89d54f22914a835e3362278c44a6ec6c2ddc4b53d7183c00119e">\r\n      <source xml:lang="en">&amp;&amp;</source>\r\n      <note>&amp;&amp;</note>\r\n    </trans-unit>';
             const amp = '\r\n    <trans-unit id="++CODE++360d9d079c933408511677541ccd65fece76a0c52492ff7b4968b321ec254ecd">\r\n      <source xml:lang="en">&amp;&amp;</source>\r\n    </trans-unit>';
             const apostrophesWithNote = '\r\n    <trans-unit id="++CODE++500f464aca256d905f8cd110e037e679706a17bb413d761d727433e28634e5ec">\r\n      <source xml:lang="en">&apos;&apos;</source>\r\n      <note>&apos;&apos;</note>\r\n    </trans-unit>';
@@ -72,6 +74,7 @@ describe('XLF', () => {
                 header
                 + newlinesWithNote
                 + newlines
+                + carriageReturnNewlines
                 + ampWithNote
                 + amp
                 + apostrophesWithNote
@@ -162,12 +165,24 @@ note2</note>
             assert.strictEqual(result[1]!.messages['id'], 'World');
         });
 
-        it('parses double quotes correctly', async () => {
+        it('parses special characters correctly', async () => {
             const result = await XLF.parse(`
     <?xml version="1.0" encoding="utf-8"?>
     <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
     <file original="bundle" source-language="en" datatype="plaintext" target-language="de">
     <body>
+        <trans-unit id="++CODE++73e7b6f86214bc78ee505fb5f7d4fb97cfa99924a67ca3105113c9a3d52f8fef">
+            <source xml:lang="en">&#10;&#10;</source>
+            <target state="translated">&#10;&#10;</target>
+        </trans-unit>
+        <trans-unit id="++CODE++73e7b6f86214bc78ee505fb5f7d4fb97cfa99924a67ca3105113c9a3d52f8fef">
+            <source xml:lang="en">a string with two newlines&#10;&#10;</source>
+            <target state="translated">a string with two newlines&#10;&#10;</target>
+        </trans-unit>
+        <trans-unit id="++CODE++73e7b6f86214bc78ee505fb5f7d4fb97cfa99924a67ca3105113c9a3d52f8fef">
+            <source xml:lang="en">a string with two carriage return line feeds&#13;&#10;&#13;&#10;</source>
+            <target state="translated">a string with two carriage return line feeds&#13;&#10;&#13;&#10;</target>
+        </trans-unit>
         <trans-unit id="++CODE++12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126">
             <source xml:lang="en">&quot;&quot;</source>
             <target state="translated">&quot;&quot;</target>
@@ -196,6 +211,10 @@ note2</note>
             assert.strictEqual(result.length, 1);
             assert.strictEqual(result[0]!.language, 'de');
             assert.strictEqual(result[0]!.name, 'bundle');
+            assert.ok(result[0]!.messages['a string with two newlines\n\n']);
+            assert.strictEqual(result[0]!.messages['a string with two newlines\n\n'], 'a string with two newlines\n\n');
+            assert.ok(result[0]!.messages['a string with two carriage return line feeds\r\n\r\n']);
+            assert.strictEqual(result[0]!.messages['a string with two carriage return line feeds\r\n\r\n'], 'a string with two carriage return line feeds\r\n\r\n');
             assert.ok(result[0]!.messages['""']);
             assert.strictEqual(result[0]!.messages['""'], '""');
             assert.ok(result[0]!.messages["''"]);
