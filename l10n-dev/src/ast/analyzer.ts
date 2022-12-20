@@ -23,11 +23,33 @@ try {
 	// ignore any errors here
 }
 
+const initParser = Parser.init();
+
 export class ScriptAnalyzer {
-	static #tsParser: Parser | undefined;
-	static #tsxParser: Parser | undefined;
-	static #tsGrammar: Parser.Language | undefined;
-	static #tsxGrammar: Parser.Language | undefined;
+	static #tsParser: Promise<Parser> = (async () => {
+		await initParser;
+		const parser = new Parser();
+		parser.setLanguage(await ScriptAnalyzer.#tsGrammar);
+		return parser;
+	})();
+	static #tsxParser: Promise<Parser> = (async () => {
+		await initParser;
+		const parser = new Parser();
+		parser.setLanguage(await ScriptAnalyzer.#tsxGrammar);
+		return parser;
+	})();
+	static #tsGrammar: Promise<Parser.Language> = (async () => {
+		await initParser;
+		return await Parser.Language.load(
+			path.resolve(__dirname, 'tree-sitter-typescript.wasm')
+		);
+	})();
+	static #tsxGrammar: Promise<Parser.Language> = (async () => {
+		await initParser;
+		return await Parser.Language.load(
+			path.resolve(__dirname, 'tree-sitter-tsx.wasm')
+		);
+	})();
 
 	#getCommentsFromMatch(match: QueryMatch): string[] {
 		const commentCapture = match.captures.find(c => c.name === 'comment');
@@ -107,29 +129,13 @@ export class ScriptAnalyzer {
 		switch(extension) {
 			case '.jsx':
 			case '.tsx':
-				if (!ScriptAnalyzer.#tsxParser) {
-					await Parser.init();
-					ScriptAnalyzer.#tsxParser = new Parser();
-					ScriptAnalyzer.#tsxGrammar = await Parser.Language.load(
-						path.resolve(__dirname, 'tree-sitter-tsx.wasm')
-					);
-					ScriptAnalyzer.#tsxParser.setLanguage(ScriptAnalyzer.#tsxGrammar);
-				}
-				grammar = ScriptAnalyzer.#tsxGrammar!;
-				parser = ScriptAnalyzer.#tsxParser!;
+				grammar = await ScriptAnalyzer.#tsxGrammar;
+				parser = await ScriptAnalyzer.#tsxParser;
 				break;
 			case '.js':
 			case '.ts':
-				if (!ScriptAnalyzer.#tsParser) {
-					await Parser.init();
-					ScriptAnalyzer.#tsParser = new Parser();
-					ScriptAnalyzer.#tsGrammar = await Parser.Language.load(
-						path.resolve(__dirname, 'tree-sitter-typescript.wasm')
-					);
-					ScriptAnalyzer.#tsParser.setLanguage(ScriptAnalyzer.#tsGrammar);
-				}
-				grammar = ScriptAnalyzer.#tsGrammar!;
-				parser = ScriptAnalyzer.#tsParser!;
+				grammar = await ScriptAnalyzer.#tsGrammar;
+				parser = await ScriptAnalyzer.#tsParser;
 				break;
 
 			default:
