@@ -26,12 +26,12 @@ jobs:
         name: upload tree-sitter-tsx.wasm
         with:
           name: tree-sitter-tsx.wasm
-          path: l10n-dev/tree-sitter-tsx.wasm
+          path: l10n-dev/src/ast/tree-sitter-tsx.wasm
       - uses: actions/upload-artifact@v3
         name: upload tree-sitter-typescript.wasm
         with:
           name: tree-sitter-typescript.wasm
-          path: l10n-dev/tree-sitter-typescript.wasm
+          path: l10n-dev/src/ast/tree-sitter-typescript.wasm
 
       - run: npm test
 
@@ -53,11 +53,11 @@ jobs:
         name: download tree-sitter-tsx.wasm
         with:
           name: tree-sitter-tsx.wasm
-          path: l10n-dev
+          path: l10n-dev/src/ast
       - uses: actions/download-artifact@v3
         name: download tree-sitter-typescript.wasm
         with:
           name: tree-sitter-typescript.wasm
-          path: l10n-dev
+          path: l10n-dev/src/ast
 
       - run: npm test

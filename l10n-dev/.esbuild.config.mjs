@@ -1,10 +1,16 @@
 import esbuild from 'esbuild';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import copy from 'esbuild-copy-files-plugin';
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor';
 import { createRequire } from 'module';
 
-const require = createRequire(import.meta.url);
+// fill __dirname and __filename
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// require package.json
+const require = createRequire(__filename);
 const { dependencies, peerDependencies } = require('./package.json');
 
 const watch = process.argv.includes('--watch');
@@ -66,4 +72,7 @@ Promise.all([
 	}
 	console.log(`[${type}] generating types finished`);
 })
-.catch(() => process.exit(1));
+.catch((err) => {
+	console.log(err);
+	process.exit(1);
+});
