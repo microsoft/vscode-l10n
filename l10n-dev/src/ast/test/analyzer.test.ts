@@ -16,6 +16,20 @@ describe('ScriptAnalyzer', async () => {
             assert.strictEqual(Object.keys(result!).length, 1);
             assert.strictEqual(result![basecaseText]!, basecaseText);
         });
+
+        it('require ensure it can run on multiple files', async () => {
+            const analyzer = new ScriptAnalyzer();
+            for (let i = 0; i < 10; i++) {
+                const result = await analyzer.analyze({
+                    extension: '.ts',
+                    contents: `
+                        const vscode = require('vscode');
+                        vscode.l10n.t('${basecaseText}');`
+                });
+                assert.strictEqual(Object.keys(result!).length, 1);
+                assert.strictEqual(result![basecaseText]!, basecaseText);
+            }
+        }).timeout(10000);
     
         it('require js', async () => {
             const analyzer = new ScriptAnalyzer();
