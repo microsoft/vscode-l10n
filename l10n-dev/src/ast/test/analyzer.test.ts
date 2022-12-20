@@ -29,7 +29,7 @@ describe('ScriptAnalyzer', async () => {
                 assert.strictEqual(Object.keys(result!).length, 1);
                 assert.strictEqual(result![basecaseText]!, basecaseText);
             }
-        });
+        }).timeout(10000);
     
         it('require js', async () => {
             const analyzer = new ScriptAnalyzer();
