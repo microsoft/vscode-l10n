@@ -75,7 +75,15 @@ export class ScriptAnalyzer {
 		}
 		const text = capture.node.text;
 		// remove quotes
-		return removeQuotes ? text.substring(1, text.length - 1) : text;
+		if (!removeQuotes) {
+			return text;
+		}
+
+		const character = text[0];
+		if (character !== '\'' && character !== '"' && character !== '`') {
+			return text;
+		}
+		return text.substring(1, text.length - 1).replace(new RegExp(`\\\\${character}`, 'g'), () => character);
 	}
 
 	#getImportDetails(match: QueryMatch): IAlternativeVariableNames {
@@ -125,6 +133,12 @@ export class ScriptAnalyzer {
 	}
 
 	async analyze({ extension, contents }: IScriptFile): Promise<l10nJsonFormat> {
+		// if the file doesn't contain l10n or vscode, it isn't importing what we care about
+		// so we don't need to spend time parsing it
+		if (!contents.includes('l10n') || !contents.includes('vscode')) {
+			return {};
+		}
+
 		let parser, grammar;
 		switch(extension) {
 			case '.jsx':

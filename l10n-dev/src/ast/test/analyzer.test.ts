@@ -16,21 +16,6 @@ describe('ScriptAnalyzer', async () => {
             assert.strictEqual(Object.keys(result!).length, 1);
             assert.strictEqual(result![basecaseText]!, basecaseText);
         });
-
-        it('require ensure it can run on multiple files', async () => {
-            const analyzer = new ScriptAnalyzer();
-            for (let i = 0; i < 10; i++) {
-                const result = await analyzer.analyze({
-                    extension: '.ts',
-                    contents: `
-                        const vscode = require('vscode');
-                        vscode.l10n.t('${basecaseText}');`
-                });
-                assert.strictEqual(Object.keys(result!).length, 1);
-                assert.strictEqual(result![basecaseText]!, basecaseText);
-            }
-        }).timeout(10000);
-    
         it('require js', async () => {
             const analyzer = new ScriptAnalyzer();
             const result = await analyzer.analyze({
@@ -141,6 +126,20 @@ describe('ScriptAnalyzer', async () => {
             assert.strictEqual(Object.keys(result!).length, 1);
             assert.strictEqual(result![basecaseText]!, basecaseText);
         });
+
+        it('require ensure it can run on multiple files', async () => {
+            const analyzer = new ScriptAnalyzer();
+            for (let i = 0; i < 10; i++) {
+                const result = await analyzer.analyze({
+                    extension: '.ts',
+                    contents: `
+                        const vscode = require('vscode');
+                        vscode.l10n.t('${basecaseText}');`
+                });
+                assert.strictEqual(Object.keys(result!).length, 1);
+                assert.strictEqual(result![basecaseText]!, basecaseText);
+            }
+        }).timeout(10000);
     });
 
     context('importing @vscode/l10n', async () => {
@@ -281,6 +280,18 @@ describe('ScriptAnalyzer', async () => {
             assert.strictEqual((result!['foobar/foo\nbarbar\nfoo']! as { message: string }).message, 'foobar');
             assert.strictEqual((result!['foobar/foo\nbarbar\nfoo']! as { comment: string[] }).comment[0], 'foo\nbar');
             assert.strictEqual((result!['foobar/foo\nbarbar\nfoo']! as { comment: string[] }).comment[1], 'bar\nfoo');
+        });
+
+        it('exports escaped quotes correctly', async () => {
+            const analyzer = new ScriptAnalyzer();
+            const result = await analyzer.analyze({
+                extension: '.ts',
+                contents: `
+                    import * as l10n from '@vscode/l10n';
+                    l10n.t('foo\\'bar');`
+            });
+            assert.strictEqual(Object.keys(result!).length, 1);
+            assert.strictEqual(result!['foo\'bar']!, 'foo\'bar');
         });
     });
 });
