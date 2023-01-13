@@ -9,7 +9,7 @@ Library used for loading the translations into subprocesses of your extension. T
 ## Usage
 
 ```typescript
-import { l10n } from '@vscode/l10n';
+import * as l10n from '@vscode/l10n';
 
 // Load the translations for the current locale
 l10n.config({
