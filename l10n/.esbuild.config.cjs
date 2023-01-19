@@ -8,6 +8,7 @@ const type = watch ? 'watch' : 'compile';
 const sharedConfig = {
 	entryPoints: ['src/main.ts'],
 	bundle: true,
+	format: 'esm',
 	watch: !watch ? false : {
 		onRebuild(error, result) {
 			console.log(`[${type}] build started`)
@@ -26,13 +27,11 @@ console.log(`[${type}] build started`);
 Promise.all([
 	esbuild.build({
 		...sharedConfig,
-		format: 'esm',
 		platform: 'node',
 		outfile: 'dist/main.js'
 	}),
 	esbuild.build({
 		...sharedConfig,
-		format: 'esm',
 		platform: 'browser',
 		outfile: 'dist/browser.js'
 	})
