@@ -8,6 +8,8 @@ const type = watch ? 'watch' : 'compile';
 const sharedConfig = {
 	entryPoints: ['src/main.ts'],
 	bundle: true,
+	minify: false,
+	sourcemap: watch,
 	watch: !watch ? false : {
 		onRebuild(error, result) {
 			console.log(`[${type}] build started`)
@@ -18,8 +20,6 @@ const sharedConfig = {
 			}
 		},
 	},
-	sourcemap: watch,
-	minify: !watch,
 }
 
 console.log(`[${type}] build started`);
@@ -31,16 +31,10 @@ Promise.all([
 	}),
 	esbuild.build({
 		...sharedConfig,
-		format: 'iife',
+		format: 'esm',
 		globalName: 'l10n',
 		platform: 'browser',
 		outfile: 'dist/browser.js',
-	}),
-	esbuild.build({
-		...sharedConfig,
-		format: 'esm',
-		platform: 'browser',
-		outfile: 'dist/browser.esm.js',
 	})
 ])
 .then(() => {
