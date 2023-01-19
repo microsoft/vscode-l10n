@@ -16,7 +16,13 @@
 		"./dist/main.js": "./dist/browser.js",
 		"./src/node/reader": "./src/browser/reader"
 	},
-	"module": "./dist/browser.esm.js",
+	"type": "module",
+	"exports": {
+		"module": {
+			"node": "./dist/main.js",
+			"browser": "./dist/browser.js"
+		}
+	},
 	"types": "dist/main.d.ts",
 	"files": [
 		"dist/*"
@@ -41,9 +47,9 @@
 	},
 	"scripts": {
 		"clean": "rimraf dist && rimraf lib",
-		"compile": "npm run clean && tsc --emitDeclarationOnly --outDir lib && node .esbuild.config.js",
+		"compile": "npm run clean && tsc --emitDeclarationOnly --outDir lib && node .esbuild.config.cjs",
 		"lint": "eslint src --ext ts",
-		"watch": "node .esbuild.config.js --watch",
+		"watch": "node .esbuild.config.cjs --watch",
 		"test": "mocha",
 		"prepublishOnly": "npm run lint && npm run compile && npm run test"
 	}

@@ -19,28 +19,22 @@ const sharedConfig = {
 		},
 	},
 	sourcemap: watch,
-	minify: !watch,
+	minify: false
 }
 
 console.log(`[${type}] build started`);
 Promise.all([
 	esbuild.build({
 		...sharedConfig,
+		format: 'esm',
 		platform: 'node',
-		outfile: 'dist/main.js',
-	}),
-	esbuild.build({
-		...sharedConfig,
-		format: 'iife',
-		globalName: 'l10n',
-		platform: 'browser',
-		outfile: 'dist/browser.js',
+		outfile: 'dist/main.js'
 	}),
 	esbuild.build({
 		...sharedConfig,
 		format: 'esm',
 		platform: 'browser',
-		outfile: 'dist/browser.esm.js',
+		outfile: 'dist/browser.js'
 	})
 ])
 .then(() => {
