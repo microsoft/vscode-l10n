@@ -4,11 +4,29 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from "assert";
+import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 import importFresh from "import-fresh";
 import mock from "mock-fs";
 import { platform } from "process";
 
 let l10n: typeof import("../main");
+
+function createServerAsync(): Promise<Server<typeof IncomingMessage, typeof ServerResponse>> {
+    return new Promise((resolve, reject) => {
+        try {
+            const server = createServer((_req, res) => {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end('{ "Yes": "Ja" }');
+            });
+            server.on('error', reject);
+            server.listen(0, () => {
+                resolve(server);
+            });
+        } catch (e: any) {
+            reject(e);
+        }
+    });
+}
 
 describe('@vscode/l10n', () => {
     beforeEach(() => {
@@ -31,7 +49,7 @@ describe('@vscode/l10n', () => {
         assert.strictEqual(l10n.t("message"), "translated message");
     });
 
-    it('load from uri', async () => {
+    it('load from file uri', async () => {
         mock({
             '/mock-bundle.json': `{ "message": "translated message" }`,
             'C:\\mock-bundle.json': `{ "message": "translated message" }`
@@ -45,7 +63,7 @@ describe('@vscode/l10n', () => {
         }
     });
 
-    it('load from uri as string', async () => {
+    it('load from file uri as string', async () => {
         mock({
             '/mock-bundle.json': `{ "message": "translated message" }`,
             'C:\\mock-bundle.json': `{ "message": "translated message" }`
@@ -57,6 +75,17 @@ describe('@vscode/l10n', () => {
             assert.strictEqual(l10n.t("message"), "translated message");
         } finally {
             mock.restore();
+        }
+    });
+
+    it('load from http uri', async () => {
+        const server = await createServerAsync();
+        const port = (server.address() as any).port;
+        try {
+            await l10n.config({ uri: new URL(`http://localhost:${port}`) });
+            assert.strictEqual(l10n.t("Yes"), "Ja");
+        } finally {
+            server.close();
         }
     });
 
