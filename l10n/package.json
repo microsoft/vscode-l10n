@@ -16,7 +16,6 @@
 		"./dist/main.js": "./dist/browser.js",
 		"./src/node/reader": "./src/browser/reader"
 	},
-	"module": "./dist/browser.esm.js",
 	"types": "dist/main.d.ts",
 	"files": [
 		"dist/*"
