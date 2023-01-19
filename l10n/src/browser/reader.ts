@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 export async function readFileFromUri(uri: URL): Promise<string> {
-    if (uri.protocol === 'http' || uri.protocol === 'https') {
+    if (uri.protocol === 'http:' || uri.protocol === 'https:') {
         const res = await fetch(uri);
         return await res.text();
     }

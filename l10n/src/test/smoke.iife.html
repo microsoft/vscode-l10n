@@ -18,6 +18,12 @@ describe('test', () => {
     it('fallback', () => {
         chai.expect(l10n.t('hi')).to.eql('hi');
     });
+    it('works with uri', async () => {
+        await l10n.config({
+            uri: new URL('/l10n/src/test/smoke.json', window.location.origin)
+        });
+        chai.expect(l10n.t('Yes')).to.eql('Ja');
+    });
 });
 
 mocha.run();
