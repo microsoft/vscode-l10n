@@ -11,12 +11,12 @@ import { platform } from "process";
 
 let l10n: typeof import("../main");
 
-function createServerAsync(): Promise<Server<typeof IncomingMessage, typeof ServerResponse>> {
+function createServerAsync(contentsToReturn: string): Promise<Server<typeof IncomingMessage, typeof ServerResponse>> {
     return new Promise((resolve, reject) => {
         try {
             const server = createServer((_req, res) => {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end('{ "Yes": "Ja" }');
+                res.end(contentsToReturn);
             });
             server.on('error', reject);
             server.listen(0, () => {
@@ -79,11 +79,22 @@ describe('@vscode/l10n', () => {
     });
 
     it('load from http uri', async () => {
-        const server = await createServerAsync();
+        const server = await createServerAsync('{ "message": "translated message" }');
         const port = (server.address() as any).port;
         try {
             await l10n.config({ uri: new URL(`http://localhost:${port}`) });
-            assert.strictEqual(l10n.t("Yes"), "Ja");
+            assert.strictEqual(l10n.t("message"), "translated message");
+        } finally {
+            server.close();
+        }
+    });
+
+    it('load from http uri with built-in schema', async () => {
+        const server = await createServerAsync('{ "version": "1.0.0", "contents": { "bundle": { "message": "translated message" } } }');
+        const port = (server.address() as any).port;
+        try {
+            await l10n.config({ uri: new URL(`http://localhost:${port}`) });
+            assert.strictEqual(l10n.t("message"), "translated message");
         } finally {
             server.close();
         }
@@ -93,6 +104,21 @@ describe('@vscode/l10n', () => {
         mock({
             '/mock-bundle.json': `{ "message": "translated message" }`,
             'C:\\mock-bundle.json': `{ "message": "translated message" }`
+        });
+        l10n.config({
+            fsPath: platform === 'win32' ? 'C:\\mock-bundle.json' : '/mock-bundle.json'
+        });
+        try {
+            assert.strictEqual(l10n.t("message"), "translated message");
+        } finally {
+            mock.restore();
+        }
+    });
+
+    it('load from fsPath with built-in schema', async () => {
+        mock({
+            '/mock-bundle.json': '{ "version": "1.0.0", "contents": { "bundle": { "message": "translated message" } } }',
+            'C:\\mock-bundle.json': '{ "version": "1.0.0", "contents": { "bundle": { "message": "translated message" } } }'
         });
         l10n.config({
             fsPath: platform === 'win32' ? 'C:\\mock-bundle.json' : '/mock-bundle.json'
@@ -188,4 +214,16 @@ describe('@vscode/l10n', () => {
             args: { this: 'foo' }
         }), result);
     });
+
+    //#region error cases
+
+    it('rejects when uri does not resolve', () => {
+        assert.rejects(() => l10n.config({ uri: new URL('http://localhost:1234') }));
+    });
+
+    it('throws when file path does not exist', () => {
+        assert.throws(() => l10n.config({ fsPath: '/does-not-exist' }));
+    })
+
+    //#endregion
 });
