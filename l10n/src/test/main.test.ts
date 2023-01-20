@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from "assert";
-import { createServer, IncomingMessage, Server, ServerResponse } from "http";
+import { createServer } from "http";
 import importFresh from "import-fresh";
 import mock from "mock-fs";
 import { platform } from "process";
 
 let l10n: typeof import("../main");
 
-function createServerAsync(contentsToReturn: string): Promise<Server<typeof IncomingMessage, typeof ServerResponse>> {
+function createServerAsync(contentsToReturn: string): Promise<{ port: number, close: () => void }> {
     return new Promise((resolve, reject) => {
         try {
             const server = createServer((_req, res) => {
@@ -20,7 +20,10 @@ function createServerAsync(contentsToReturn: string): Promise<Server<typeof Inco
             });
             server.on('error', reject);
             server.listen(0, () => {
-                resolve(server);
+                resolve({
+                    port: (server.address() as any).port,
+                    close: () => server.close(),
+                });
             });
         } catch (e: any) {
             reject(e);
@@ -80,9 +83,8 @@ describe('@vscode/l10n', () => {
 
     it('load from http uri', async () => {
         const server = await createServerAsync('{ "message": "translated message" }');
-        const port = (server.address() as any).port;
         try {
-            await l10n.config({ uri: new URL(`http://localhost:${port}`) });
+            await l10n.config({ uri: new URL(`http://localhost:${server.port}`) });
             assert.strictEqual(l10n.t("message"), "translated message");
         } finally {
             server.close();
@@ -91,9 +93,8 @@ describe('@vscode/l10n', () => {
 
     it('load from http uri with built-in schema', async () => {
         const server = await createServerAsync('{ "version": "1.0.0", "contents": { "bundle": { "message": "translated message" } } }');
-        const port = (server.address() as any).port;
         try {
-            await l10n.config({ uri: new URL(`http://localhost:${port}`) });
+            await l10n.config({ uri: new URL(`http://localhost:${server.port}`) });
             assert.strictEqual(l10n.t("message"), "translated message");
         } finally {
             server.close();
