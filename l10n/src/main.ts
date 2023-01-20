@@ -63,7 +63,8 @@ export function config(config: { contents: string | l10nJsonFormat } | { fsPath:
     }
     if ('fsPath' in config) {
         const fileContent = reader.readFileFromFsPath(config.fsPath);
-        bundle = JSON.parse(fileContent);
+        const content = JSON.parse(fileContent);
+        bundle = isBuiltinExtension(content) ? content.contents.bundle : content;
         return;
     }
     if(config.uri) {
@@ -71,10 +72,21 @@ export function config(config: { contents: string | l10nJsonFormat } | { fsPath:
         if (typeof config.uri === 'string') {
             uri = new URL(config.uri);
         }
-        return reader.readFileFromUri(uri as URL)
-            .then((content) => {
-                bundle = JSON.parse(content);
+        return new Promise((resolve, reject) => {
+            const p = reader.readFileFromUri(uri as URL)
+            .then((uriContent) => {
+                try {
+                    const content = JSON.parse(uriContent);
+                    bundle = isBuiltinExtension(content) ? content.contents.bundle : content;
+                } catch (err) {
+                    reject(err);
+                }
+            })
+            .catch((err) => {
+                reject(err);
             });
+            resolve(p);
+        });
     }
 }
 
@@ -177,4 +189,13 @@ const _format2Regexp = /{([^}]+)}/g;
  */
 function format(template: string, values: Record<string, unknown>): string {
 	return template.replace(_format2Regexp, (match, group) => (values[group] ?? match) as string);
+}
+
+/**
+ * detect if we're reading a built-in extension
+ */
+function isBuiltinExtension(json: any): boolean {
+    // HACK: for now, we basically try to guess the schema of the json to see if it's a built-in extension.
+    // The schema looks like https://github.com/microsoft/vscode-loc/blob/23ad94192526c028b45f011fd878ad922fd9cfda/i18n/vscode-language-pack-cs/translations/extensions/vscode.extension-editing.i18n.json#L11
+    return !!(typeof json?.contents?.bundle === 'object' && typeof json?.version === 'string')
 }
