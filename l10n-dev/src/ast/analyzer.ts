@@ -58,14 +58,15 @@ export class ScriptAnalyzer {
 		}
 		if (commentCapture.node.type === 'string') {
 			const text = commentCapture.node.text;
-			// remove quotes
-			return [text.substring(1, text.length - 1)];
+			// remove quotes using indirect eval
+			return [(0, eval)(text)];
 		}
 
 		// we have an array of comments
 		return commentCapture.node.children
 			.filter(c => c.type === 'string')
-			.map(c => c.children[1]!.text);
+			// remove quotes using indirect eval
+			.map(c => (0, eval)(c.text));
 	}
 
 	#getStringFromMatch(match: QueryMatch, id: string, removeQuotes: boolean): string | undefined {
@@ -83,7 +84,8 @@ export class ScriptAnalyzer {
 		if (character !== '\'' && character !== '"' && character !== '`') {
 			return text;
 		}
-		return text.substring(1, text.length - 1).replace(new RegExp(`\\\\${character}`, 'g'), () => character);
+		// remove quotes using indirect eval
+		return (0, eval)(text);
 	}
 
 	#getImportDetails(match: QueryMatch): IAlternativeVariableNames {
