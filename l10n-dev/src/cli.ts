@@ -28,11 +28,10 @@ yargs(hideBin(process.argv))
 		yargs.option('outDir', {
 			alias: 'o',
 			string: true,
-			default: '.',
 			describe: 'Output directory'
 		});
 	}, async function (argv) {
-		await l10nExportStrings(argv.path as string[], argv.outDir as string);
+		await l10nExportStrings(argv.path as string[], argv.outDir as string | undefined);
 	})
 .command(
 	'generate-xlf [args] <path..>',
@@ -102,7 +101,7 @@ yargs(hideBin(process.argv))
 	})
 .help().argv;
 
-async function l10nExportStrings(paths: string[], outDir: string): Promise<void> {
+export async function l10nExportStrings(paths: string[], outDir?: string): Promise<void> {
 	console.log('Searching for TypeScript/JavaScript files...');
 	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
 	const tsFileContents = matches.reduce<IScriptFile[]>((prev, curr) => {
@@ -136,13 +135,37 @@ async function l10nExportStrings(paths: string[], outDir: string): Promise<void>
 	console.log(`Found ${tsFileContents.length} TypeScript files. Extracting strings...`);
 	const jsonResult = await getL10nJson(tsFileContents);
 
-	if (!Object.keys(jsonResult).length) {
+	const stringsFound = Object.keys(jsonResult).length;
+	if (!stringsFound) {
 		console.log('No strings found. Skipping writing to a bundle.l10n.json.');
 		return;
 	}
-	const resolvedOutFile = path.resolve(path.join(outDir, 'bundle.l10n.json'));
-	console.log(`Writing exported strings to: ${resolvedOutFile}`);
-	mkdirSync(path.resolve(outDir), { recursive: true });
+	console.log(`Extracted ${stringsFound} strings...`);
+
+	let packageJSON;
+	try {
+		packageJSON = JSON.parse(readFileSync('package.json').toString('utf-8'));
+	} catch(err) {
+		// Ignore
+	}
+	if (packageJSON) {
+		if (outDir) {
+			if (!packageJSON.l10n || path.resolve(packageJSON.l10n) === path.resolve(outDir)) {
+				console.warn('The l10n property in the package.json does not match the outDir specified. For an extension to work correctly, l10n must be set to the location of the bundle files.');
+			}
+		} else {
+			outDir = packageJSON.l10n ?? '.';
+		}
+	} else {
+		if (!outDir) {
+			console.debug('No package.json found in directory and no outDir specified. Using the current directory.');
+			return;
+		}
+		outDir = outDir ?? '.';
+	}
+	const resolvedOutFile = path.resolve(path.join(outDir!, 'bundle.l10n.json'));
+	console.info(`Writing exported strings to: ${resolvedOutFile}`);
+	mkdirSync(path.resolve(outDir!), { recursive: true });
 	writeFileSync(resolvedOutFile, JSON.stringify(jsonResult, undefined, 2));
 }
 

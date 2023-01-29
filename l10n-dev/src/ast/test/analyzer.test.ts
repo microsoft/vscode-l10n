@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 import * as assert from 'assert';
 import { ScriptAnalyzer } from '../analyzer';
 
@@ -259,7 +260,7 @@ describe('ScriptAnalyzer', async () => {
                 extension: '.ts',
                 contents: `
                 import { l10n } from 'vscode';
-                l10n.t('foo\nbar');`
+                l10n.t('foo\\nbar');`
             });
             assert.strictEqual(Object.keys(result!).length, 1);
             assert.strictEqual(result!['foo\nbar']!, 'foo\nbar');
@@ -273,7 +274,7 @@ describe('ScriptAnalyzer', async () => {
                 import { l10n } from 'vscode';
                 l10n.t({
                     message: 'foobar',
-                    comment: ['foo\nbar', 'bar\nfoo']
+                    comment: ['foo\\nbar', 'bar\\nfoo']
                 });`
             });
             assert.strictEqual(Object.keys(result!).length, 1);
@@ -292,6 +293,18 @@ describe('ScriptAnalyzer', async () => {
             });
             assert.strictEqual(Object.keys(result!).length, 1);
             assert.strictEqual(result!['foo\'bar']!, 'foo\'bar');
+        });
+
+        it('exports unnecessary escaped characters correctly', async () => {
+            const analyzer = new ScriptAnalyzer();
+            const result = await analyzer.analyze({
+                extension: '.ts',
+                contents: `
+                    import * as l10n from '@vscode/l10n';
+                    l10n.t('foo\"bar');`
+            });
+            assert.strictEqual(Object.keys(result!).length, 1);
+            assert.strictEqual(result!['foo\"bar']!, 'foo\"bar');
         });
     });
 });
