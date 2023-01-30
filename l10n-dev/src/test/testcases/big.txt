@@ -6,9 +6,5 @@ l10n.t('foo\"bar');
 l10n.t('foo\nbaz');
 l10n.t({
     message: 'foobar',
-    comment: ['foobar']
-});
-l10n.t({
-    message: 'foobar',
-    comment: ['foo\nbar', 'bar\nfoo']
+    comment: ['foobar', 'barfoo']
 });

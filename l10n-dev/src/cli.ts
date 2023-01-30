@@ -169,7 +169,7 @@ export async function l10nExportStrings(paths: string[], outDir?: string): Promi
 	writeFileSync(resolvedOutFile, JSON.stringify(jsonResult, undefined, 2));
 }
 
-function l10nGenerateXlf(paths: string[], language: string, outFile: string): void {
+export function l10nGenerateXlf(paths: string[], language: string, outFile: string): void {
 	console.log('Searching for L10N JSON files...');
 	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
 	const l10nFileContents = matches.reduce<Map<string, l10nJsonFormat>>((prev, curr) => {
@@ -201,7 +201,7 @@ function l10nGenerateXlf(paths: string[], language: string, outFile: string): vo
 	console.log(`Wrote XLF file to: ${outFile}`);
 }
 
-async function l10nImportXlf(paths: string[], outDir: string): Promise<void> {
+export async function l10nImportXlf(paths: string[], outDir: string): Promise<void> {
 	console.log('Searching for XLF files...');
 	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
 	const xlfFiles = matches.reduce<string[]>((prev, curr) => {
@@ -232,7 +232,10 @@ async function l10nImportXlf(paths: string[], outDir: string): Promise<void> {
 		count += details.length;
 		for (const detail of details) {
 			const type = detail.name === 'package' ? 'nls' : 'l10n';
-			writeFileSync(path.resolve(path.join(outDir, `${detail.name}.${type}.${detail.language}.json`)), JSON.stringify(detail.messages));
+			writeFileSync(
+				path.resolve(path.join(outDir, `${detail.name}.${type}.${detail.language}.json`)),
+				JSON.stringify(detail.messages, undefined, 2)
+			);
 		}
 	}
 	console.log(`Wrote ${count} localized L10N JSON files to: ${outDir}`);
@@ -249,11 +252,17 @@ function l10nGeneratePseudo(paths: string[], language: string): void {
 			if (result.endsWith('.l10n.json')) {
 				const name = path.basename(curr).split('.l10n.json')[0] ?? '';
 				const contents = getL10nPseudoLocalized(JSON.parse(readFileSync(path.resolve(curr), 'utf8')));
-				writeFileSync(path.resolve(path.join(path.dirname(curr), `${name}.l10n.${language}.json`)), JSON.stringify(contents));
+				writeFileSync(
+					path.resolve(path.join(path.dirname(curr), `${name}.l10n.${language}.json`)),
+					JSON.stringify(contents, undefined, 2)
+				);
 			}
 			if (result.endsWith('package.nls.json')) {
 				const contents = getL10nPseudoLocalized(JSON.parse(readFileSync(path.resolve(curr), 'utf8')));
-				writeFileSync(path.resolve(path.join(path.dirname(curr), `package.nls.${language}.json`)), JSON.stringify(contents));
+				writeFileSync(
+					path.resolve(path.join(path.dirname(curr), `package.nls.${language}.json`)),
+					JSON.stringify(contents, undefined, 2)
+				);
 			}
 		}
 	});
