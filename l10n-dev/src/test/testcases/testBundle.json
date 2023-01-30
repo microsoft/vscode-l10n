@@ -1,0 +1,13 @@
+{
+  "Hello World": "Hello World",
+  "foo'bar": "foo'bar",
+  "foo\"bar": "foo\"bar",
+  "foo\nbaz": "foo\nbaz",
+  "foobar/foobarbarfoo": {
+    "message": "foobar",
+    "comment": [
+      "foobar",
+      "barfoo"
+    ]
+  }
+}

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="bundle" source-language="en" datatype="plaintext" target-language="qps-ploc">
+    <body>
+      <trans-unit id="++CODE++a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e">
+        <source xml:lang="en">Hello World</source>
+        <target state="translated">Hèℓℓô Wôřℓδ</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f7169bcdd14bcdffa49e1c5f2be8d62e6537e3388d5c0c4b3038fc19e2d87f51">
+        <source xml:lang="en">foo&#10;baz</source>
+        <target state="translated">ƒôô&#10;βáƺ</target>
+      </trans-unit>
+      <trans-unit id="++CODE++34bfea118ab80523cc666a19e02fc9bf8fb04fc7ed57f3a1b2225ffb05003db8">
+        <source xml:lang="en">foo&apos;bar</source>
+        <target state="translated">ƒôô&apos;βář</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cf24e195fe61138ec386aef8e03531ceaeca2cb07f2e59e467c0b7c216a69436">
+        <source xml:lang="en">foo&quot;bar</source>
+        <target state="translated">ƒôô&quot;βář</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2fd44bdaf614170e329cc1cc359ad788f7fba1feb83525d72f64720176260d53">
+        <source xml:lang="en">foobar</source>
+        <target state="translated">ƒôôβář</target>
+        <note>foobar
+barfoo</note>
+      </trans-unit>
+    </body>
+  </file>
+  <file original="package" source-language="en" datatype="plaintext" target-language="qps-ploc">
+    <body>
+      <trans-unit id="basecase">
+        <source xml:lang="en">Hello World</source>
+        <target state="translated">Hèℓℓô Wôřℓδ</target>
+      </trans-unit>
+      <trans-unit id="with newline">
+        <source xml:lang="en">foo&#10;baz</source>
+        <target state="translated">ƒôô&#10;βáƺ</target>
+      </trans-unit>
+      <trans-unit id="with apos">
+        <source xml:lang="en">foo&apos;bar</source>
+        <target state="translated">ƒôô&apos;βář</target>
+      </trans-unit>
+      <trans-unit id="with quote">
+        <source xml:lang="en">foo&quot;bar</source>
+        <target state="translated">ƒôô&quot;βář</target>
+      </trans-unit>
+      <trans-unit id="with notes">
+        <source xml:lang="en">foobar</source>
+        <target state="translated">ƒôôβář</target>
+        <note>foobar
+barfoo</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

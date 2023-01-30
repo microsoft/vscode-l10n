@@ -156,7 +156,7 @@ export function t(...args: [str: string, ...args: Array<string | number | boolea
         key = message;
         if (firstArg.comment && firstArg.comment.length > 0) {
             // in the format: message/commentcommentcomment
-            key += `/${Array.isArray(firstArg.comment) ? firstArg.comment.join() : firstArg.comment}`;
+            key += `/${Array.isArray(firstArg.comment) ? firstArg.comment.join('') : firstArg.comment}`;
         }
         formatArgs = firstArg.args as any[] ?? {};
     }
