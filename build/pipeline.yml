@@ -62,6 +62,7 @@ extends:
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
             displayName: Test npm package
 
+        ghTagPrefix: l10n-dev/v
         publishPackage: ${{ parameters.publishPackage1 }}
         workingDirectory: $(Build.SourcesDirectory)/l10n-dev
         publishRequiresApproval: false
@@ -97,6 +98,7 @@ extends:
             workingDirectory: $(Build.SourcesDirectory)/l10n
             displayName: Test npm package
 
+        ghTagPrefix: l10n/v
         publishPackage: ${{ parameters.publishPackage2 }}
         workingDirectory: $(Build.SourcesDirectory)/l10n
         publishRequiresApproval: false
