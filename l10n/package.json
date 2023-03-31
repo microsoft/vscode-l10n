@@ -12,6 +12,7 @@
 		"url": "https://github.com/Microsoft/vscode-l10n/issues"
 	},
 	"main": "./dist/main.js",
+	"sideEffects": false,
 	"browser": {
 		"./dist/main.js": "./dist/browser.js",
 		"./src/node/reader": "./src/browser/reader"
