@@ -41,11 +41,11 @@
 	},
 	"dependencies": {
 		"deepmerge-json": "^1.5.0",
-		"glob": "^8.0.3",
+		"glob": "^10.0.0",
 		"pseudo-localization": "^2.4.0",
-		"web-tree-sitter": "^0.20.7",
-		"xml2js": "^0.4.23",
-		"yargs": "^17.5.1"
+		"web-tree-sitter": "^0.20.8",
+		"xml2js": "^0.5.0",
+		"yargs": "^17.7.1"
 	},
 	"scripts": {
 		"build-wasm-typescript": "tree-sitter build-wasm ./node_modules/tree-sitter-typescript/typescript && mv ./tree-sitter-typescript.wasm ./src/ast/tree-sitter-typescript.wasm",
