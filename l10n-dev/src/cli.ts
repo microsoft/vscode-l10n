@@ -117,7 +117,7 @@ export async function l10nExportStrings(paths: string[], outDir?: string): Promi
 				});
 				break;
 		}
-		const results = glob.sync(path.posix.join(curr, '{,**}', '*.{ts,tsx,js,jsx}'));
+		const results = glob.sync(path.posix.join(toPosixPath(curr), '{,**}', '*.{ts,tsx,js,jsx}'));
 		for (const result of results) {
 			prev.push({
 				extension: path.extname(result),
@@ -175,7 +175,7 @@ export function l10nGenerateXlf(paths: string[], language: string, outFile: stri
 	const l10nFileContents = matches.reduce<Map<string, l10nJsonFormat>>((prev, curr) => {
 		const results = curr.endsWith('.l10n.json') || curr.endsWith('package.nls.json')
 			? [curr]
-			: glob.sync(path.posix.join(curr, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
+			: glob.sync(path.posix.join(toPosixPath(curr), `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
 		for (const result of results) {
 			if (result.endsWith('.l10n.json')) {
 				const name = path.basename(curr).split('.l10n.json')[0] ?? '';
@@ -208,7 +208,7 @@ export async function l10nImportXlf(paths: string[], outDir: string): Promise<vo
 		if (curr.endsWith('.xlf')) {
 			prev.push(readFileSync(path.resolve(curr), 'utf8'));
 		}
-		const results = glob.sync(path.posix.join(curr, `{,!(node_modules)/**}`, '*.xlf'));
+		const results = glob.sync(path.posix.join(toPosixPath(curr), `{,!(node_modules)/**}`, '*.xlf'));
 		for (const result of results) {
 			prev.push(readFileSync(path.resolve(result), 'utf8'));
 		}
@@ -247,7 +247,7 @@ function l10nGeneratePseudo(paths: string[], language: string): void {
 	matches.forEach(curr => {
 		const results = curr.endsWith('.l10n.json') || curr.endsWith('package.nls.json')
 			? [curr]
-			: glob.sync(path.posix.join(curr, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
+			: glob.sync(path.posix.join(toPosixPath(curr), `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
 		for (const result of results) {
 			if (result.endsWith('.l10n.json')) {
 				const name = path.basename(curr).split('.l10n.json')[0] ?? '';
