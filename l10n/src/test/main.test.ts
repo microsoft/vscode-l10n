@@ -54,8 +54,7 @@ describe('@vscode/l10n', () => {
 
     it('load from file uri', async () => {
         mock({
-            '/mock-bundle.json': `{ "message": "translated message" }`,
-            'C:\\mock-bundle.json': `{ "message": "translated message" }`
+            [process.platform === 'win32' ? 'C:\\mock-bundle.json' : '/mock-bundle.json']: `{ "message": "translated message" }`,
         });
         await l10n.config({ uri: new URL(platform === 'win32' ? 'file:///c:/mock-bundle.json' : 'file:///mock-bundle.json') });
 
@@ -68,8 +67,7 @@ describe('@vscode/l10n', () => {
 
     it('load from file uri as string', async () => {
         mock({
-            '/mock-bundle.json': `{ "message": "translated message" }`,
-            'C:\\mock-bundle.json': `{ "message": "translated message" }`
+            [process.platform === 'win32' ? 'C:\\mock-bundle.json' : '/mock-bundle.json']: `{ "message": "translated message" }`,
         });
         await l10n.config({
             uri: new URL(platform === 'win32' ? 'file:///c:/mock-bundle.json' : 'file:///mock-bundle.json').toString()
@@ -103,8 +101,7 @@ describe('@vscode/l10n', () => {
 
     it('load from fsPath', async () => {
         mock({
-            '/mock-bundle.json': `{ "message": "translated message" }`,
-            'C:\\mock-bundle.json': `{ "message": "translated message" }`
+            [process.platform === 'win32' ? 'C:\\mock-bundle.json' : '/mock-bundle.json']: `{ "message": "translated message" }`,
         });
         l10n.config({
             fsPath: platform === 'win32' ? 'C:\\mock-bundle.json' : '/mock-bundle.json'
@@ -118,8 +115,7 @@ describe('@vscode/l10n', () => {
 
     it('load from fsPath with built-in schema', async () => {
         mock({
-            '/mock-bundle.json': '{ "version": "1.0.0", "contents": { "bundle": { "message": "translated message" } } }',
-            'C:\\mock-bundle.json': '{ "version": "1.0.0", "contents": { "bundle": { "message": "translated message" } } }'
+            [process.platform === 'win32' ? 'C:\\mock-bundle.json' : '/mock-bundle.json']: '{ "version": "1.0.0", "contents": { "bundle": { "message": "translated message" } } }',
         });
         l10n.config({
             fsPath: platform === 'win32' ? 'C:\\mock-bundle.json' : '/mock-bundle.json'
@@ -164,7 +160,7 @@ describe('@vscode/l10n', () => {
             }
         });
 
-        // Normally we would be more static in the declaration of the object 
+        // Normally we would be more static in the declaration of the object
         // in order to extract them properly but for tests we don't need to do that.
         assert.strictEqual(l10n.t({
             message,
@@ -185,7 +181,7 @@ describe('@vscode/l10n', () => {
             }
         });
 
-        // Normally we would be more static in the declaration of the object 
+        // Normally we would be more static in the declaration of the object
         // in order to extract them properly but for tests we don't need to do that.
         assert.strictEqual(l10n.t({
             message,
@@ -207,13 +203,25 @@ describe('@vscode/l10n', () => {
             }
         });
 
-        // Normally we would be more static in the declaration of the object 
+        // Normally we would be more static in the declaration of the object
         // in order to extract them properly but for tests we don't need to do that.
         assert.strictEqual(l10n.t({
             message,
             comment: [comment],
             args: { this: 'foo' }
         }), result);
+    });
+
+    it('supports template literals', () => {
+        l10n.config({
+            contents: {
+                'original {0} message {1}': 'translated {0} message {1}'
+            }
+        });
+
+        const a = 'foo';
+        const b = 'bar';
+        assert.strictEqual(l10n.t`original ${a} message ${b}`, "translated foo message bar");
     });
 
     //#region error cases

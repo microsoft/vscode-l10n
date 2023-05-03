@@ -92,6 +92,12 @@ export function config(config: { contents: string | l10nJsonFormat } | { fsPath:
 
 /**
  * @public
+ * Type that can be used as replacements in `l10n.t()` or `l10n.lit` calls.
+ */
+export type L10nReplacement = string | number | boolean;
+
+/**
+ * @public
  * Marks a string for localization. If the bundle has a localized value for this message, then that localized
  * value will be returned (with injected `args` values for any templated values).
  * @param message - The message to localize. Supports index templating where strings like `{0}` and `{1}` are
@@ -101,7 +107,7 @@ export function config(config: { contents: string | l10nJsonFormat } | { fsPath:
  * @returns localized string with injected arguments.
  * @example `l10n.localize('hello', 'Hello {0}!', 'World');`
  */
-export function t(message: string, ...args: Array<string | number | boolean>): string;
+export function t(message: string, ...args: Array<L10nReplacement>): string;
 /**
  * @public
  * Marks a string for localization. If the bundle has a localized value for this message, then that localized
@@ -113,7 +119,23 @@ export function t(message: string, ...args: Array<string | number | boolean>): s
  * @returns localized string with injected arguments.
  * @example `l10n.t('Hello {name}', { name: 'Erich' });`
  */
-export function t(message: string, args: Record<string, any>): string;
+export function t(message: string, args: Record<string, L10nReplacement>): string;
+
+/**
+ * @public
+ * Marks a string for localization. This function signature is made for usage
+ * with tagged template literals.
+ *
+ * The more verbose overload should still be used if comments are required.
+ * @example
+ * ```
+ * l10n.t`Hello ${name}!`
+ * ```
+ * @param message - String message components
+ * @param args - Replacement components in the string
+ * @returns localized string with injected arguments.
+ */
+export function t(strs: TemplateStringsArray, ...replacements: L10nReplacement[]): string;
 
 /**
  * @public
@@ -141,7 +163,10 @@ export function t(options: {
      */
     comment: string | string[];
 }): string;
-export function t(...args: [str: string, ...args: Array<string | number | boolean>] | [message: string, args: Record<string, any>] | [options: { message: string; args?: Array<string | number | boolean> | Record<string, any>; comment?: string | string[] }]): string {
+export function t(...args: [str: string, ...args: Array<string | number | boolean>]
+    | [message: string, args: Record<string, any>]
+    | [message: TemplateStringsArray, ...args: L10nReplacement[]]
+    | [options: { message: string; args?: Array<string | number | boolean> | Record<string, any>; comment?: string | string[] }]): string {
     const firstArg = args[0];
     let key: string;
     let message: string;
@@ -151,6 +176,18 @@ export function t(...args: [str: string, ...args: Array<string | number | boolea
         message = firstArg;
         args.splice(0, 1);
         formatArgs = !args || typeof args[0] !== 'object' ? args : args[0];
+    } else if (firstArg instanceof Array) {
+        const replacements = args.slice(1) as L10nReplacement[];
+        if (firstArg.length !== replacements.length + 1) {
+            throw new Error('expected a string as the first argument to l10n.t');
+        }
+
+        let str = firstArg[0]!; // implied strs.length > 0 since replacements.length >= 0
+        for (let i = 1; i < firstArg.length; i++) {
+            str += `{${i - 1}}` + firstArg[i];
+        }
+
+        return t(str, ...replacements);
     } else {
         message = firstArg.message;
         key = message;
@@ -160,11 +197,8 @@ export function t(...args: [str: string, ...args: Array<string | number | boolea
         }
         formatArgs = firstArg.args as any[] ?? {};
     }
-    if (!bundle) {
-        return format(message, formatArgs as Record<string, unknown>);
-    }
 
-    const messageFromBundle = bundle[key];
+    const messageFromBundle = bundle?.[key];
     if (!messageFromBundle) {
         return format(message, formatArgs as Record<string, unknown>);
     }
@@ -172,7 +206,7 @@ export function t(...args: [str: string, ...args: Array<string | number | boolea
     if (typeof messageFromBundle === 'string') {
         return format(messageFromBundle, formatArgs as Record<string, unknown>);
     }
-    
+
     if (messageFromBundle.comment) {
         return format(messageFromBundle.message, formatArgs as Record<string, unknown>);
     }
@@ -184,7 +218,7 @@ const _format2Regexp = /{([^}]+)}/g;
 /**
  * Helper to create a string from a template and a string record.
  * Similar to `format` but with objects instead of positional arguments.
- * 
+ *
  * Copied from https://github.com/microsoft/vscode/blob/5dfca53892a1061b1c103542afe49d51f1041778/src/vs/base/common/strings.ts#L44
  */
 function format(template: string, values: Record<string, unknown>): string {

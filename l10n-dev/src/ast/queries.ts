@@ -62,27 +62,28 @@ ${assignmentExpressionRequireQuery}
 ${importQuery}`;
 
 // Gets a query that will find and extract all t() calls into @message and @comment
-export function getTQuery({ vscode, l10n, t}: IAlternativeVariableNames): string {
-	return `(call_expression 
+export function getTQuery({ vscode = 'vscode', l10n = 'l10n', t = 't' }: IAlternativeVariableNames): string {
+	return `(call_expression
 	(member_expression
 		object: [
-			((identifier) @l10n (#eq? @l10n ${l10n ?? 'l10n'}))
-			(member_expression 
-				object: (identifier) @vscode (#eq? @vscode ${vscode ?? 'vscode'})
-				property: (property_identifier) @l10n (#eq? @l10n ${l10n ?? 'l10n'})
+			((identifier) @l10n (#eq? @l10n ${l10n}))
+			(member_expression
+				object: (identifier) @vscode (#eq? @vscode ${vscode})
+				property: (property_identifier) @l10n (#eq? @l10n ${l10n})
 			)
 		]
 		property: (property_identifier) @t (#eq? @t ${t ?? 't'})
 	)
 	arguments: [
+		(template_string (template_substitution)* @sub) @template
 		(arguments . (string) @message)
 		(arguments . (number) @message)
 		(arguments . (object
-			(pair 
+			(pair
 				key: (property_identifier) @message-prop (#eq? @message-prop message)
 				value: (string) @message
 			)
-			(pair 
+			(pair
 				key: (property_identifier) @comment-prop (#eq? @comment-prop comment)
 				value: [
 					((string) @comment)
