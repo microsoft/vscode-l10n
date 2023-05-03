@@ -92,7 +92,7 @@ export function config(config: { contents: string | l10nJsonFormat } | { fsPath:
 
 /**
  * @public
- * Type that can be used as replacements in `l10n.t()` or `l10n.lit` calls.
+ * Type that can be used as replacements in `l10n.t` calls.
  */
 export type L10nReplacement = string | number | boolean;
 
