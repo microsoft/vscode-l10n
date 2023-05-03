@@ -191,7 +191,7 @@ describe('ScriptAnalyzer', async () => {
         });
     });
 
-    context('usage of l10n.lit', async () => {
+    context('usage of l10n.t literal', async () => {
         it('args are object with comment as string', async () => {
             const analyzer = new ScriptAnalyzer();
             const key = `hello {0} and {1}!`;
@@ -199,18 +199,18 @@ describe('ScriptAnalyzer', async () => {
                 extension: '.ts',
                 contents: `
                     import { l10n } from 'vscode';
-                    l10n.lit\`hello \${name} and \${other}!\`;`
+                    l10n.t\`hello \${name} and \${other}!\`;`
             });
             assert.deepStrictEqual(result, { [key]: 'hello {0} and {1}!' });
         });
 
-        it('does not count other lit functions', async () => {
+        it('does not count other t functions', async () => {
             const analyzer = new ScriptAnalyzer();
             const result = await analyzer.analyze({
                 extension: '.ts',
                 contents: `
                     import * as i18next from 'i18next';
-                    i18next.lit\`${basecaseText}\`;`
+                    i18next.t\`${basecaseText}\`;`
             });
             assert.deepStrictEqual(result, {});
         });
@@ -221,7 +221,7 @@ describe('ScriptAnalyzer', async () => {
                 extension: '.ts',
                 contents: `
                     import * as l10n from '@vscode/l10n';
-                    l10n.lit\`foo\\\`bar\``
+                    l10n.t\`foo\\\`bar\``
             });
             assert.deepStrictEqual(result, { 'foo`bar': 'foo`bar' });
         });
@@ -232,7 +232,7 @@ describe('ScriptAnalyzer', async () => {
                 extension: '.ts',
                 contents: `
                     import * as l10n from '@vscode/l10n';
-                    l10n.lit\`foo\\"bar'\``
+                    l10n.t\`foo\\"bar'\``
             });
             assert.deepStrictEqual(result, { 'foo"bar\'': 'foo"bar\'' });
         });

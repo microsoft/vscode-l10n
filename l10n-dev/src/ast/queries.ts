@@ -7,7 +7,6 @@ export interface IAlternativeVariableNames {
 	vscode?: string;
 	l10n?: string;
 	t?: string;
-	lit?: string;
 }
 
 // matches require('vscode') and require('@vscode/l10n')
@@ -62,22 +61,6 @@ export const importOrRequireQuery = `${variableDeclaratorRequireQuery}
 ${assignmentExpressionRequireQuery}
 ${importQuery}`;
 
-export function getLitQuery({ vscode = 'vscode', l10n = 'l10n', lit = 'lit' }: IAlternativeVariableNames): string {
-	return `(call_expression
-	(member_expression
-		object: [
-			((identifier) @l10n (#eq? @l10n ${l10n}))
-			(member_expression
-				object: (identifier) @vscode (#eq? @vscode ${vscode})
-				property: (property_identifier) @l10n (#eq? @l10n ${l10n})
-			)
-		]
-		property: (property_identifier) @t (#eq? @t ${lit ?? 'lit'})
-	)
-	arguments: (template_string (template_substitution)* @sub) @str
-)`;
-}
-
 // Gets a query that will find and extract all t() calls into @message and @comment
 export function getTQuery({ vscode = 'vscode', l10n = 'l10n', t = 't' }: IAlternativeVariableNames): string {
 	return `(call_expression
@@ -92,6 +75,7 @@ export function getTQuery({ vscode = 'vscode', l10n = 'l10n', t = 't' }: IAltern
 		property: (property_identifier) @t (#eq? @t ${t ?? 't'})
 	)
 	arguments: [
+		(template_string (template_substitution)* @sub) @template
 		(arguments . (string) @message)
 		(arguments . (number) @message)
 		(arguments . (object

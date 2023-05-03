@@ -6,7 +6,7 @@
 import * as path from 'path';
 import Parser, { QueryMatch } from "web-tree-sitter";
 import { IScriptFile, l10nJsonFormat } from "../common";
-import { importOrRequireQuery, getTQuery, IAlternativeVariableNames, getLitQuery } from "./queries";
+import { importOrRequireQuery, getTQuery, IAlternativeVariableNames } from "./queries";
 import { unescapeString } from './unescapeString';
 
 // Workaround for https://github.com/tree-sitter/tree-sitter/issues/1765
@@ -110,7 +110,7 @@ export class ScriptAnalyzer {
 				// import { l10n as foo } from 'vscode' or import { l10n } from 'vscode'
 				? { l10n: namedImportAlias }
 				// import { t as foo } from '@vscode/l10n' or import { t } from '@vscode/l10n'
-				:  { t: namedImportAlias };
+				: { t: namedImportAlias };
 		}
 
 		// we have required vscode or @vscode/l10n
@@ -147,7 +147,7 @@ export class ScriptAnalyzer {
 		}
 
 		let parser, grammar;
-		switch(extension) {
+		switch (extension) {
 			case '.jsx':
 			case '.tsx':
 				grammar = await ScriptAnalyzer.#tsxGrammar;
@@ -171,34 +171,31 @@ export class ScriptAnalyzer {
 		const bundle: l10nJsonFormat = {};
 		for (const importMatch of importMatches) {
 			const importDetails = this.#getImportDetails(importMatch);
-			const tQuery = grammar.query(getTQuery(importDetails));
-			const tmatches = tQuery.matches(parsed.rootNode);
-			for (const match of tmatches) {
-				const message = this.#getStringFromMatch(match, 'message', true)!;
-				const comment = this.#getCommentsFromMatch(match);
+			const query = grammar.query(getTQuery(importDetails));
+			const matches = query.matches(parsed.rootNode);
+			for (const match of matches) {
+				const template = match.captures.find(c => c.name === 'template');
+				let message: string;
+				if (template) {
+					const subs = match.captures.filter(c => c.name === 'sub');
+					const start = template.node.startIndex;
+					message = template.node.text;
+					for (let i = subs.length - 1; i >= 0; i--) {
+						const sub = subs[i]!;
+						message = message.slice(0, sub.node.startIndex - start) + `{${i}}` + message.slice(sub.node.endIndex - start);
+					}
+					message = this.#getUnquotedString(message);
+				} else {
+					message = this.#getStringFromMatch(match, 'message', true)!;
+				}
 
+				const comment = this.#getCommentsFromMatch(match);
 				if (comment.length) {
 					const key = `${message}/${comment.join('')}`;
 					bundle[key] = { message, comment };
 				} else {
 					bundle[message] = message;
 				}
-			}
-
-			const litQuery = grammar.query(getLitQuery(importDetails));
-			const litmatches = litQuery.matches(parsed.rootNode);
-			for (const match of litmatches) {
-				// don't unescape yet, otherwise offsets will be wrong:
-				const str = match.captures.find(c => c.name === 'str')!.node;
-				const subs = match.captures.filter(c => c.name === 'sub');
-				let message = str.text;
-				for (let i = subs.length - 1; i >= 0; i--) {
-					const sub = subs[i]!;
-					message = message.slice(0, sub.node.startIndex - str.startIndex) + `{${i}}` + message.slice(sub.node.endIndex - str.startIndex);
-				}
-
-				message = this.#getUnquotedString(message);
-				bundle[message] = message;
 			}
 		}
 		return bundle;

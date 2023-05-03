@@ -221,7 +221,7 @@ describe('@vscode/l10n', () => {
 
         const a = 'foo';
         const b = 'bar';
-        assert.strictEqual(l10n.lit`original ${a} message ${b}`, "translated foo message bar");
+        assert.strictEqual(l10n.t`original ${a} message ${b}`, "translated foo message bar");
     });
 
     //#region error cases

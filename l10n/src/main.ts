@@ -123,6 +123,22 @@ export function t(message: string, args: Record<string, L10nReplacement>): strin
 
 /**
  * @public
+ * Marks a string for localization. This function signature is made for usage
+ * with tagged template literals.
+ *
+ * The more verbose overload should still be used if comments are required.
+ * @example
+ * ```
+ * l10n.t`Hello ${name}!`
+ * ```
+ * @param message - String message components
+ * @param args - Replacement components in the string
+ * @returns localized string with injected arguments.
+ */
+export function t(strs: TemplateStringsArray, ...replacements: L10nReplacement[]): string;
+
+/**
+ * @public
  * Marks a string for localization. If the bundle has a localized value for this message, then that localized
  * value will be returned (with injected args values for any templated values).
  * @param options - The options to use when localizing the message.
@@ -147,7 +163,10 @@ export function t(options: {
      */
     comment: string | string[];
 }): string;
-export function t(...args: [str: string, ...args: Array<string | number | boolean>] | [message: string, args: Record<string, any>] | [options: { message: string; args?: Array<string | number | boolean> | Record<string, any>; comment?: string | string[] }]): string {
+export function t(...args: [str: string, ...args: Array<string | number | boolean>]
+    | [message: string, args: Record<string, any>]
+    | [message: TemplateStringsArray, ...args: L10nReplacement[]]
+    | [options: { message: string; args?: Array<string | number | boolean> | Record<string, any>; comment?: string | string[] }]): string {
     const firstArg = args[0];
     let key: string;
     let message: string;
@@ -157,6 +176,18 @@ export function t(...args: [str: string, ...args: Array<string | number | boolea
         message = firstArg;
         args.splice(0, 1);
         formatArgs = !args || typeof args[0] !== 'object' ? args : args[0];
+    } else if (firstArg instanceof Array) {
+        const replacements = args.slice(1) as L10nReplacement[];
+        if (firstArg.length !== replacements.length + 1) {
+            throw new Error('expected a string as the first argument to l10n.t');
+        }
+
+        let str = firstArg[0]!; // implied strs.length > 0 since replacements.length >= 0
+        for (let i = 1; i < firstArg.length; i++) {
+            str += `{${i - 1}}` + firstArg[i];
+        }
+
+        return t(str, ...replacements);
     } else {
         message = firstArg.message;
         key = message;
@@ -180,33 +211,6 @@ export function t(...args: [str: string, ...args: Array<string | number | boolea
         return format(messageFromBundle.message, formatArgs as Record<string, unknown>);
     }
     return format(message, formatArgs as Record<string, unknown>);
-}
-
-/**
- * @public
- * Marks a string for localization. This function signature works as a template
- * literal, providing an alternative to the `t` function.
- *
- * Note that the more verbose `t` function should still be used if comments are required.
- * @example
- * ```
- * l10n.lit`Hello ${name}!`
- * ```
- * @param message - String message components
- * @param args - Replacement components in the string
- * @returns localized string with injected arguments.
- */
-export function lit(strs: TemplateStringsArray, ...replacements: L10nReplacement[]): string {
-    if (strs.length !== replacements.length + 1) {
-        throw new Error('l10n.lit should only be used in tagged template literals');
-    }
-
-    let str = strs[0]!; // implied strs.length > 0 since replacements.length >= 0
-    for (let i = 1; i < strs.length; i++) {
-        str += `{${i - 1}}` + strs[i];
-    }
-
-    return t(str, ...replacements);
 }
 
 const _format2Regexp = /{([^}]+)}/g;
