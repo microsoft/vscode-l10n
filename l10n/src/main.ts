@@ -92,6 +92,12 @@ export function config(config: { contents: string | l10nJsonFormat } | { fsPath:
 
 /**
  * @public
+ * Type that can be used as replacements in `l10n.t()` or `l10n.lit` calls.
+ */
+export type L10nReplacement = string | number | boolean;
+
+/**
+ * @public
  * Marks a string for localization. If the bundle has a localized value for this message, then that localized
  * value will be returned (with injected `args` values for any templated values).
  * @param message - The message to localize. Supports index templating where strings like `{0}` and `{1}` are
@@ -101,7 +107,7 @@ export function config(config: { contents: string | l10nJsonFormat } | { fsPath:
  * @returns localized string with injected arguments.
  * @example `l10n.localize('hello', 'Hello {0}!', 'World');`
  */
-export function t(message: string, ...args: Array<string | number | boolean>): string;
+export function t(message: string, ...args: Array<L10nReplacement>): string;
 /**
  * @public
  * Marks a string for localization. If the bundle has a localized value for this message, then that localized
@@ -113,7 +119,7 @@ export function t(message: string, ...args: Array<string | number | boolean>): s
  * @returns localized string with injected arguments.
  * @example `l10n.t('Hello {name}', { name: 'Erich' });`
  */
-export function t(message: string, args: Record<string, any>): string;
+export function t(message: string, args: Record<string, L10nReplacement>): string;
 
 /**
  * @public
@@ -160,11 +166,8 @@ export function t(...args: [str: string, ...args: Array<string | number | boolea
         }
         formatArgs = firstArg.args as any[] ?? {};
     }
-    if (!bundle) {
-        return format(message, formatArgs as Record<string, unknown>);
-    }
 
-    const messageFromBundle = bundle[key];
+    const messageFromBundle = bundle?.[key];
     if (!messageFromBundle) {
         return format(message, formatArgs as Record<string, unknown>);
     }
@@ -172,11 +175,38 @@ export function t(...args: [str: string, ...args: Array<string | number | boolea
     if (typeof messageFromBundle === 'string') {
         return format(messageFromBundle, formatArgs as Record<string, unknown>);
     }
-    
+
     if (messageFromBundle.comment) {
         return format(messageFromBundle.message, formatArgs as Record<string, unknown>);
     }
     return format(message, formatArgs as Record<string, unknown>);
+}
+
+/**
+ * @public
+ * Marks a string for localization. This function signature works as a template
+ * literal, providing an alternative to the `t` function.
+ *
+ * Note that the more verbose `t` function should still be used if comments are required.
+ * @example
+ * ```
+ * l10n.lit`Hello ${name}!`
+ * ```
+ * @param message - String message components
+ * @param args - Replacement components in the string
+ * @returns localized string with injected arguments.
+ */
+export function lit(strs: TemplateStringsArray, ...replacements: L10nReplacement[]): string {
+    if (strs.length !== replacements.length + 1) {
+        throw new Error('l10n.lit should only be used in tagged template literals');
+    }
+
+    let str = strs[0]!; // implied strs.length > 0 since replacements.length >= 0
+    for (let i = 1; i < strs.length; i++) {
+        str += `{${i - 1}}` + strs[i];
+    }
+
+    return t(str, ...replacements);
 }
 
 const _format2Regexp = /{([^}]+)}/g;
@@ -184,7 +214,7 @@ const _format2Regexp = /{([^}]+)}/g;
 /**
  * Helper to create a string from a template and a string record.
  * Similar to `format` but with objects instead of positional arguments.
- * 
+ *
  * Copied from https://github.com/microsoft/vscode/blob/5dfca53892a1061b1c103542afe49d51f1041778/src/vs/base/common/strings.ts#L44
  */
 function format(template: string, values: Record<string, unknown>): string {

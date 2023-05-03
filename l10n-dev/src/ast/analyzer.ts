@@ -6,7 +6,8 @@
 import * as path from 'path';
 import Parser, { QueryMatch } from "web-tree-sitter";
 import { IScriptFile, l10nJsonFormat } from "../common";
-import { importOrRequireQuery, getTQuery, IAlternativeVariableNames } from "./queries";
+import { importOrRequireQuery, getTQuery, IAlternativeVariableNames, getLitQuery } from "./queries";
+import { unescapeString } from './unescapeString';
 
 // Workaround for https://github.com/tree-sitter/tree-sitter/issues/1765
 try {
@@ -69,23 +70,27 @@ export class ScriptAnalyzer {
 			.map(c => (0, eval)(c.text));
 	}
 
-	#getStringFromMatch(match: QueryMatch, id: string, removeQuotes: boolean): string | undefined {
+	#getStringFromMatch(match: QueryMatch, id: string, unescape: boolean): string | undefined {
 		const capture = match.captures.find(c => c.name === id);
 		if (!capture) {
 			return undefined;
 		}
 		const text = capture.node.text;
 		// remove quotes
-		if (!removeQuotes) {
+		if (!unescape) {
 			return text;
 		}
 
+		return this.#getUnquotedString(text);
+	}
+
+	#getUnquotedString(text: string): string {
 		const character = text[0];
 		if (character !== '\'' && character !== '"' && character !== '`') {
 			return text;
 		}
-		// remove quotes using indirect eval
-		return (0, eval)(text);
+
+		return unescapeString(text.slice(1, -1));
 	}
 
 	#getImportDetails(match: QueryMatch): IAlternativeVariableNames {
@@ -166,11 +171,9 @@ export class ScriptAnalyzer {
 		const bundle: l10nJsonFormat = {};
 		for (const importMatch of importMatches) {
 			const importDetails = this.#getImportDetails(importMatch);
-			const tQuerys = getTQuery(importDetails);
-			const tQuery = grammar.query(tQuerys);
-			const matches = tQuery.matches(parsed.rootNode);
-
-			for (const match of matches) {
+			const tQuery = grammar.query(getTQuery(importDetails));
+			const tmatches = tQuery.matches(parsed.rootNode);
+			for (const match of tmatches) {
 				const message = this.#getStringFromMatch(match, 'message', true)!;
 				const comment = this.#getCommentsFromMatch(match);
 
@@ -180,6 +183,22 @@ export class ScriptAnalyzer {
 				} else {
 					bundle[message] = message;
 				}
+			}
+
+			const litQuery = grammar.query(getLitQuery(importDetails));
+			const litmatches = litQuery.matches(parsed.rootNode);
+			for (const match of litmatches) {
+				// don't unescape yet, otherwise offsets will be wrong:
+				const str = match.captures.find(c => c.name === 'str')!.node;
+				const subs = match.captures.filter(c => c.name === 'sub');
+				let message = str.text;
+				for (let i = subs.length - 1; i >= 0; i--) {
+					const sub = subs[i]!;
+					message = message.slice(0, sub.node.startIndex - str.startIndex) + `{${i}}` + message.slice(sub.node.endIndex - str.startIndex);
+				}
+
+				message = this.#getUnquotedString(message);
+				bundle[message] = message;
 			}
 		}
 		return bundle;
