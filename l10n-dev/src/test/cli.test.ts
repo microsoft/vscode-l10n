@@ -142,4 +142,34 @@ describe('cli', () => {
 			}
 		});
 	});
+
+	context('l10nGeneratePseudo', () => {
+		before(() => {
+			mock({
+				'bundle.l10n.json': mock.load(path.resolve(__dirname, 'testcases/testBundle.json'))
+			});
+		})
+		afterEach(() => {
+			mock.restore();
+		});
+		it('big file of test cases', async () => {
+			cli.l10nGeneratePseudo(['bundle.l10n.json'], 'qps-ploc');
+			const result = readFileSync('bundle.l10n.qps-ploc.json', 'utf8');
+			const actualLines = result.split(/\r?\n/);
+			const expectedLines = [
+				'{',
+				'  "Hello World": "Ħḗḗŀŀǿǿ Ẇǿǿřŀḓ",',
+				'  "foo\'bar": "ƒǿǿǿǿ\'ƀȧȧř",',
+				'  "foo\\"bar": "ƒǿǿǿǿ\\"ƀȧȧř",',
+				'  "foo\\nbaz": "ƒǿǿǿǿ\\nƀȧȧẑ",',
+				'  "foobar/foobarbarfoo": "ƒǿǿǿǿƀȧȧř"',
+				'}',
+			];
+			for (let i = 0; i < expectedLines.length; i++) {
+				const expectedLine = expectedLines[i];
+				const actualLine = actualLines[i];
+				assert.strictEqual(actualLine, expectedLine);
+			}
+		});
+	});
 });

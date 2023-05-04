@@ -6,10 +6,19 @@
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import * as glob from 'glob';
-import { getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf } from "./main";
+import { getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf, l10nJsonFormat } from "./main";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { IScriptFile, l10nJsonFormat } from "./common";
+
+const GLOB_DEFAULTS = {
+	// We only want files.
+	nodir: true,
+	// Absolute paths are easier to work with.
+	absolute: true,
+	// Ultimately, we should remove this but I worry that folks have already taken advantage of the fact that we handled Windows paths.
+	// For now, we'll keep it, but in the future, we should remove it.
+	windowsPathsNoEscape: true
+};
 
 yargs(hideBin(process.argv))
 .scriptName("vscode-l10n-dev")
@@ -22,7 +31,6 @@ yargs(hideBin(process.argv))
 			demandOption: true,
 			type: 'string',
 			array: true,
-			normalize: true,
 			describe: 'TypeScript files to extract strings from. Supports folders and glob patterns.'
 		});
 		yargs.option('outDir', {
@@ -103,29 +111,15 @@ yargs(hideBin(process.argv))
 
 export async function l10nExportStrings(paths: string[], outDir?: string): Promise<void> {
 	console.log('Searching for TypeScript/JavaScript files...');
-	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
-	const tsFileContents = matches.reduce<IScriptFile[]>((prev, curr) => {
-		const ext = path.extname(curr);
-		switch(ext) {
-			case '.ts':
-			case '.tsx':
-			case '.js':
-			case '.jsx':
-				prev.push({
-					extension: ext,
-					contents: readFileSync(path.resolve(curr), 'utf8')
-				});
-				break;
-		}
-		const results = glob.sync(path.posix.join(toPosixPath(curr), '{,**}', '*.{ts,tsx,js,jsx}'));
-		for (const result of results) {
-			prev.push({
-				extension: path.extname(result),
-				contents: readFileSync(path.resolve(result), 'utf8')
-			});
-		}
-		return prev;
-	}, []);
+
+	const matches = glob.sync(
+		paths.map(p => /\.(ts|tsx|js|jsx)$/.test(p) ? p : path.posix.join(p, '{,**}', '*.{ts,tsx,js,jsx}')),
+		GLOB_DEFAULTS
+	);
+	const tsFileContents = matches.map(m => ({
+		extension: path.extname(m),
+		contents: readFileSync(path.resolve(m), 'utf8')
+	}));
 
 	if (!tsFileContents.length) {
 		console.log('No TypeScript files found.');
@@ -171,24 +165,21 @@ export async function l10nExportStrings(paths: string[], outDir?: string): Promi
 
 export function l10nGenerateXlf(paths: string[], language: string, outFile: string): void {
 	console.log('Searching for L10N JSON files...');
-	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
-	const l10nFileContents = matches.reduce<Map<string, l10nJsonFormat>>((prev, curr) => {
-		const results = curr.endsWith('.l10n.json') || curr.endsWith('package.nls.json')
-			? [curr]
-			: glob.sync(path.posix.join(toPosixPath(curr), `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
-		for (const result of results) {
-			if (result.endsWith('.l10n.json')) {
-				const name = path.basename(curr).split('.l10n.json')[0] ?? '';
-				prev.set(name, JSON.parse(readFileSync(path.resolve(curr), 'utf8')));
-				return prev;
-			}
-			if (result.endsWith('package.nls.json')) {
-				prev.set('package', JSON.parse(readFileSync(path.resolve(curr), 'utf8')));
-				return prev;
-			}
+
+	const matches = glob.sync(
+		paths.map(p => /(\.l10n\.json|package\.nls\.json)$/.test(p) ? p : path.posix.join(p, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}')),
+		GLOB_DEFAULTS
+	);
+
+	const l10nFileContents = new Map<string, l10nJsonFormat>();
+	for (const match of matches) {
+		if (match.endsWith('.l10n.json')) {
+			const name = path.basename(match).split('.l10n.json')[0] ?? '';
+			l10nFileContents.set(name, JSON.parse(readFileSync(path.resolve(match), 'utf8')));
+		} else if (match.endsWith('package.nls.json')) {
+			l10nFileContents.set('package', JSON.parse(readFileSync(path.resolve(match), 'utf8')));
 		}
-		return prev;
-	}, new Map());
+	}
 
 	if (!l10nFileContents.size) {
 		console.log('No L10N JSON files found so skipping generating XLF.');
@@ -203,18 +194,12 @@ export function l10nGenerateXlf(paths: string[], language: string, outFile: stri
 
 export async function l10nImportXlf(paths: string[], outDir: string): Promise<void> {
 	console.log('Searching for XLF files...');
-	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
-	const xlfFiles = matches.reduce<string[]>((prev, curr) => {
-		if (curr.endsWith('.xlf')) {
-			prev.push(readFileSync(path.resolve(curr), 'utf8'));
-		}
-		const results = glob.sync(path.posix.join(toPosixPath(curr), `{,!(node_modules)/**}`, '*.xlf'));
-		for (const result of results) {
-			prev.push(readFileSync(path.resolve(result), 'utf8'));
-		}
-		return prev;
-	}, []);
 
+	const matches = glob.sync(
+		paths.map(p => /\.xlf$/.test(p) ? p : path.posix.join(p, `{,!(node_modules)/**}`, '*.xlf')),
+		GLOB_DEFAULTS
+	);
+	const xlfFiles = matches.map(m => readFileSync(path.resolve(m), 'utf8'));
 	if (!xlfFiles.length) {
 		console.log('No XLF files found.');
 		return;
@@ -241,39 +226,33 @@ export async function l10nImportXlf(paths: string[], outDir: string): Promise<vo
 	console.log(`Wrote ${count} localized L10N JSON files to: ${outDir}`);
 }
 
-function l10nGeneratePseudo(paths: string[], language: string): void {
+export function l10nGeneratePseudo(paths: string[], language: string): void {
 	console.log('Searching for L10N JSON files...');
-	const matches = paths.map(p => glob.sync(toPosixPath(p))).flat();
-	matches.forEach(curr => {
-		const results = curr.endsWith('.l10n.json') || curr.endsWith('package.nls.json')
-			? [curr]
-			: glob.sync(path.posix.join(toPosixPath(curr), `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}'));
-		for (const result of results) {
-			if (result.endsWith('.l10n.json')) {
-				const name = path.basename(curr).split('.l10n.json')[0] ?? '';
-				const contents = getL10nPseudoLocalized(JSON.parse(readFileSync(path.resolve(curr), 'utf8')));
-				writeFileSync(
-					path.resolve(path.join(path.dirname(curr), `${name}.l10n.${language}.json`)),
-					JSON.stringify(contents, undefined, 2)
-				);
-			}
-			if (result.endsWith('package.nls.json')) {
-				const contents = getL10nPseudoLocalized(JSON.parse(readFileSync(path.resolve(curr), 'utf8')));
-				writeFileSync(
-					path.resolve(path.join(path.dirname(curr), `package.nls.${language}.json`)),
-					JSON.stringify(contents, undefined, 2)
-				);
-			}
+
+	const matches = glob.sync(
+		paths.map(p => /(\.l10n\.json|package\.nls\.json)$/.test(p) ? p : path.posix.join(p, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}')),
+		GLOB_DEFAULTS
+	);
+
+	for (const match of matches) {
+		const contents = getL10nPseudoLocalized(JSON.parse(readFileSync(path.resolve(match), 'utf8')));
+		if (match.endsWith('.l10n.json')) {
+			const name = path.basename(match).split('.l10n.json')[0] ?? '';
+			writeFileSync(
+				path.resolve(path.join(path.dirname(match), `${name}.l10n.${language}.json`)),
+				JSON.stringify(contents, undefined, 2)
+			);
+		} else if (path.basename(match) === 'package.nls.json') {
+			writeFileSync(
+				path.resolve(path.join(path.dirname(match), `package.nls.${language}.json`)),
+				JSON.stringify(contents, undefined, 2)
+			);
 		}
-	});
+	}
 
 	if (!matches.length) {
 		console.log('No L10N JSON files.');
 		return;
 	}
 	console.log(`Wrote ${matches.length} L10N JSON files.`);
-}
-
-function toPosixPath(pathToConvert: string): string {
-	return pathToConvert.split(path.win32.sep).join(path.posix.sep);
 }
