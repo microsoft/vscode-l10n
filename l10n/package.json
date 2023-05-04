@@ -1,6 +1,6 @@
 {
 	"name": "@vscode/l10n",
-	"version": "0.0.13",
+	"version": "0.0.14",
 	"description": "A helper library to assist in localizing subprocesses spun up by VS Code extensions",
 	"author": "Microsoft Corporation",
 	"license": "MIT",
