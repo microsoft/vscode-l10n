@@ -21,6 +21,7 @@
 	},
 	"devDependencies": {
 		"@microsoft/api-extractor": "^7.32.1",
+		"@types/debug": "^4.1.7",
 		"@types/mocha": "^9.1.1",
 		"@types/mock-fs": "^4.13.1",
 		"@types/node": "14.17.1",
@@ -39,6 +40,7 @@
 		"ts-node": "^10.9.1"
 	},
 	"dependencies": {
+		"debug": "^4.3.4",
 		"deepmerge-json": "^1.5.0",
 		"glob": "^10.0.0",
 		"pseudo-localization": "^2.4.0",
