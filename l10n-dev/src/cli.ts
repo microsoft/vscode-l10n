@@ -9,6 +9,7 @@ import * as glob from 'glob';
 import { getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf, l10nJsonFormat } from "./main";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import { logger, LogLevel } from "./logger";
 
 const GLOB_DEFAULTS = {
 	// We only want files.
@@ -23,6 +24,23 @@ const GLOB_DEFAULTS = {
 yargs(hideBin(process.argv))
 .scriptName("vscode-l10n-dev")
 .usage('$0 <cmd> [args]')
+.option('verbose', {
+	alias: 'v',
+	boolean: true,
+	describe: 'Enable verbose logging'
+})
+.option('debug', {
+	alias: 'd',
+	boolean: true,
+	describe: 'Enable debug logging'
+})
+.middleware(function (argv) {
+	if (argv.debug) {
+		logger.setLogLevel(LogLevel.Debug);
+	} else if (argv.verbose) {
+		logger.setLogLevel(LogLevel.Verbose);
+	}
+})
 .command(
 	'export [args] <path..>',
 	'Export strings from source files. Supports glob patterns.',
@@ -110,7 +128,7 @@ yargs(hideBin(process.argv))
 .help().argv;
 
 export async function l10nExportStrings(paths: string[], outDir?: string): Promise<void> {
-	console.log('Searching for TypeScript/JavaScript files...');
+	logger.log('Searching for TypeScript/JavaScript files...');
 
 	const matches = glob.sync(
 		paths.map(p => /\.(ts|tsx|js|jsx)$/.test(p) ? p : path.posix.join(p, '{,**}', '*.{ts,tsx,js,jsx}')),
@@ -122,19 +140,19 @@ export async function l10nExportStrings(paths: string[], outDir?: string): Promi
 	}));
 
 	if (!tsFileContents.length) {
-		console.log('No TypeScript files found.');
+		logger.log('No TypeScript files found.');
 		return;
 	}
 
-	console.log(`Found ${tsFileContents.length} TypeScript files. Extracting strings...`);
+	logger.log(`Found ${tsFileContents.length} TypeScript files. Extracting strings...`);
 	const jsonResult = await getL10nJson(tsFileContents);
 
 	const stringsFound = Object.keys(jsonResult).length;
 	if (!stringsFound) {
-		console.log('No strings found. Skipping writing to a bundle.l10n.json.');
+		logger.log('No strings found. Skipping writing to a bundle.l10n.json.');
 		return;
 	}
-	console.log(`Extracted ${stringsFound} strings...`);
+	logger.log(`Extracted ${stringsFound} strings...`);
 
 	let packageJSON;
 	try {
@@ -164,7 +182,7 @@ export async function l10nExportStrings(paths: string[], outDir?: string): Promi
 }
 
 export function l10nGenerateXlf(paths: string[], language: string, outFile: string): void {
-	console.log('Searching for L10N JSON files...');
+	logger.log('Searching for L10N JSON files...');
 
 	const matches = glob.sync(
 		paths.map(p => /(\.l10n\.json|package\.nls\.json)$/.test(p) ? p : path.posix.join(p, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}')),
@@ -182,18 +200,18 @@ export function l10nGenerateXlf(paths: string[], language: string, outFile: stri
 	}
 
 	if (!l10nFileContents.size) {
-		console.log('No L10N JSON files found so skipping generating XLF.');
+		logger.log('No L10N JSON files found so skipping generating XLF.');
 		return;
 	}
-	console.log(`Found ${l10nFileContents.size} L10N JSON files. Generating XLF...`);
+	logger.log(`Found ${l10nFileContents.size} L10N JSON files. Generating XLF...`);
 
 	const result = getL10nXlf(l10nFileContents, { sourceLanguage: language });
 	writeFileSync(path.resolve(outFile), result);
-	console.log(`Wrote XLF file to: ${outFile}`);
+	logger.log(`Wrote XLF file to: ${outFile}`);
 }
 
 export async function l10nImportXlf(paths: string[], outDir: string): Promise<void> {
-	console.log('Searching for XLF files...');
+	logger.log('Searching for XLF files...');
 
 	const matches = glob.sync(
 		paths.map(p => /\.xlf$/.test(p) ? p : path.posix.join(p, `{,!(node_modules)/**}`, '*.xlf')),
@@ -201,11 +219,11 @@ export async function l10nImportXlf(paths: string[], outDir: string): Promise<vo
 	);
 	const xlfFiles = matches.map(m => readFileSync(path.resolve(m), 'utf8'));
 	if (!xlfFiles.length) {
-		console.log('No XLF files found.');
+		logger.log('No XLF files found.');
 		return;
 	}
 
-	console.log(`Found ${xlfFiles.length} XLF files. Generating localized L10N JSON files...`);
+	logger.log(`Found ${xlfFiles.length} XLF files. Generating localized L10N JSON files...`);
 	let count = 0;
 
 	if (xlfFiles.length) {
@@ -223,11 +241,11 @@ export async function l10nImportXlf(paths: string[], outDir: string): Promise<vo
 			);
 		}
 	}
-	console.log(`Wrote ${count} localized L10N JSON files to: ${outDir}`);
+	logger.log(`Wrote ${count} localized L10N JSON files to: ${outDir}`);
 }
 
 export function l10nGeneratePseudo(paths: string[], language: string): void {
-	console.log('Searching for L10N JSON files...');
+	logger.log('Searching for L10N JSON files...');
 
 	const matches = glob.sync(
 		paths.map(p => /(\.l10n\.json|package\.nls\.json)$/.test(p) ? p : path.posix.join(p, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}')),
@@ -251,8 +269,8 @@ export function l10nGeneratePseudo(paths: string[], language: string): void {
 	}
 
 	if (!matches.length) {
-		console.log('No L10N JSON files.');
+		logger.log('No L10N JSON files.');
 		return;
 	}
-	console.log(`Wrote ${matches.length} L10N JSON files.`);
+	logger.log(`Wrote ${matches.length} L10N JSON files.`);
 }
