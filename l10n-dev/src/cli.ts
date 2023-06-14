@@ -162,7 +162,7 @@ export async function l10nExportStrings(paths: string[], outDir?: string): Promi
 	}
 	if (packageJSON) {
 		if (outDir) {
-			if (!packageJSON.l10n || path.resolve(packageJSON.l10n) === path.resolve(outDir)) {
+			if (!packageJSON.l10n || path.resolve(packageJSON.l10n) !== path.resolve(outDir)) {
 				console.warn('The l10n property in the package.json does not match the outDir specified. For an extension to work correctly, l10n must be set to the location of the bundle files.');
 			}
 		} else {
