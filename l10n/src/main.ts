@@ -143,7 +143,7 @@ export function t(strs: TemplateStringsArray, ...replacements: L10nReplacement[]
  * value will be returned (with injected args values for any templated values).
  * @param options - The options to use when localizing the message.
  * @returns localized string with injected arguments.
- * @example `l10n.t({ message: 'Hello {name}', args: { name: 'Erich' }, comment: 'This is a comment' } );`
+ * @example `l10n.t({ message: 'Hello {0}', args: ['Erich'], comment: 'This is a comment' } );`
  */
 export function t(options: {
     /**
