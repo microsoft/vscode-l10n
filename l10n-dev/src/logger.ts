@@ -20,12 +20,14 @@ export const logger = {
     warning: debug(LogLevel.Warning),
     log: console.log,
     error: console.error,
-    setLogLevel(level: LogLevel) {
+    setLogLevel(level: LogLevel): void {
         switch (level) {
             case LogLevel.Debug:
                 debug.enable(LogLevel.Debug);
+                break;
             case LogLevel.Verbose:
                 debug.enable(LogLevel.Verbose);
+                break;
             default:
                 break;
         }
