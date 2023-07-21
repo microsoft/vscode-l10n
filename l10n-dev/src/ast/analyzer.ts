@@ -59,15 +59,13 @@ export class ScriptAnalyzer {
 		}
 		if (commentCapture.node.type === 'string') {
 			const text = commentCapture.node.text;
-			// remove quotes using indirect eval
-			return [(0, eval)(text)];
+			return [this.#getUnquotedString(text)];
 		}
 
 		// we have an array of comments
 		return commentCapture.node.children
 			.filter(c => c.type === 'string')
-			// remove quotes using indirect eval
-			.map(c => (0, eval)(c.text));
+			.map(c => this.#getUnquotedString(c.text));
 	}
 
 	#getStringFromMatch(match: QueryMatch, id: string, unescape: boolean): string | undefined {
