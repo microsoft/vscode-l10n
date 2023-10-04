@@ -38,5 +38,5 @@ l10n.t({
 });
 ```
 
-The input for `l10n.conig` pairs nicely with the `bundle` and `uri` properties on the `l10n` namespace that are provided by the [VS Code API](https://code.visualstudio.com/api/references/vscode-api#l10n).
+The input for `l10n.config` pairs nicely with the `bundle` and `uri` properties on the `l10n` namespace that are provided by the [VS Code API](https://code.visualstudio.com/api/references/vscode-api#l10n).
 You should send the value of one of these properties from your extension to your subprocess that is consuming `@vscode/l10n`.
