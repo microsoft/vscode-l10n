@@ -223,6 +223,10 @@ const _format2Regexp = /{([^}]+)}/g;
  * Copied from https://github.com/microsoft/vscode/blob/5dfca53892a1061b1c103542afe49d51f1041778/src/vs/base/common/strings.ts#L44
  */
 function format(template: string, values: Record<string, unknown>): string {
+	if (Object.keys(values).length === 0) {
+	    // Nothing to replace.
+	    return template;
+	}
 	return template.replace(_format2Regexp, (match, group) => (values[group] ?? match) as string);
 }
 
