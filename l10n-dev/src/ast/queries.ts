@@ -81,7 +81,7 @@ export function getTQuery({ vscode = 'vscode', l10n = 'l10n', t = 't' }: IAltern
 			(arguments . (object
 				(pair
 					key: (property_identifier) @message-prop (#eq? @message-prop message)
-					value: [(string) (template_string)] @message
+					value: [(string) (template_string (template_substitution)? @message_template_arg)] @message
 				)
 				(pair
 					key: (property_identifier) @comment-prop (#eq? @comment-prop comment)

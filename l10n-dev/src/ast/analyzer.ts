@@ -185,6 +185,10 @@ export class ScriptAnalyzer {
 					message = this.#getUnquotedString(message);
 				} else {
 					message = this.#getStringFromMatch(match, 'message', true)!;
+					const hasMessageTemplateArgs = match.captures.find(c => c.name === 'message_template_arg');
+					if (hasMessageTemplateArgs) {
+						throw new Error(`Message '${message}' contains template args. Please use double quotes and pass args.`);
+					}
 				}
 
 				const comment = this.#getCommentsFromMatch(match);
