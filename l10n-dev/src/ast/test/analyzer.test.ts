@@ -356,7 +356,7 @@ describe('ScriptAnalyzer', async () => {
 
         it('allows template literal messages without template args in l10n.t() calls', async () => {
             const analyzer = new ScriptAnalyzer();
-            const result = await analyzer.analyze({ extension: '.ts', contents: 'import * as l10n from @vscode/l10n\nl10n.t(`foo`)' });
+            const result = await analyzer.analyze({ extension: '.ts', contents: "import * as l10n from '@vscode/l10n';\nl10n.t(`foo`)" });
             assert.strictEqual(Object.keys(result!).length, 1);
             assert.strictEqual(result!['foo']!, 'foo');
         });
