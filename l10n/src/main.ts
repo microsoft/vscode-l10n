@@ -224,7 +224,7 @@ const _format2Regexp = /{([^}]+)}/g;
  */
 function format(template: string, values: Record<string, unknown>): string {
 	if (Object.keys(values).length === 0) {
-	    return template;
+        return template;
 	}
 	return template.replace(_format2Regexp, (match, group) => (values[group] ?? match) as string);
 }

@@ -5,27 +5,32 @@
 
 import { readFileSync } from 'fs';
 import { readFile } from 'fs/promises';
-import { xhr, getErrorStatusDescription } from 'request-light';
 
 export async function readFileFromUri(uri: URL): Promise<string> {
     if (uri.protocol === 'file:') {
         return await readFile(uri, 'utf8');
     }
     if (uri.protocol === 'http:' || uri.protocol === 'https:') {
-        try {
-            const res = await xhr({
-                url: uri.toString(),
-                followRedirects: 5,
-                headers: {
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Accept': 'application/json'
-                }
-            });
-            const decoded = new TextDecoder().decode(res.body);
-            return decoded;
-        } catch(e: any) {
-            throw new Error(e.responseText ?? getErrorStatusDescription(e.status) ?? e.toString());
+        const res = await fetch(uri.toString(), {
+            headers: {
+                'Accept-Encoding': 'gzip, deflate',
+                'Accept': 'application/json'
+            },
+            redirect: 'follow',
+        });
+
+        if (!res.ok) {
+            let error = `Unexpected ${res.status} response while trying to read ${uri}`;
+            try {
+                error += `: ${await res.text()}`;
+            } catch {
+                // ignore
+            }
+
+            throw new Error(error);
         }
+        const decoded = await res.text();
+        return decoded;
     }
     throw new Error('Unsupported protocol');
 }
