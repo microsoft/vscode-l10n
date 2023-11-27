@@ -39,7 +39,7 @@ jobs:
     needs: ci-ubuntu
     strategy:
       matrix:
-        version: [16, 18]
+        version: [18]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
