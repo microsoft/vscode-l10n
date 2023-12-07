@@ -76,7 +76,7 @@ export function getTQuery({ vscode = 'vscode', l10n = 'l10n', t = 't' }: IAltern
 		)
 		arguments: [
 			(template_string (template_substitution)* @sub) @template
-			(arguments . [(string) (template_string)] @message)
+			(arguments . [(string) (template_string (template_substitution)? @message_template_arg)] @message)
 			(arguments . (number) @message)
 			(arguments . (object
 				(pair
