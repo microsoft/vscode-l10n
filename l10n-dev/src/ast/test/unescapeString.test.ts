@@ -1,7 +1,7 @@
-import * as assert from 'assert';
+import { describe, it, expect } from '@jest/globals';
 import { unescapeString } from '../unescapeString';
 
-describe('unescapeString', async () => {
+describe('unescapeString', () => {
   const testTable = [
     ['a\\nb', 'a\nb'],
     ['a\\rb', 'a\rb'],
@@ -14,7 +14,7 @@ describe('unescapeString', async () => {
 
   for (const [input, expected] of testTable) {
     it(`should unescape ${input} to ${expected}`, () => {
-      assert.strictEqual(unescapeString(input), expected);
+      expect(unescapeString(input)).toBe(expected);
     });
   }
 });

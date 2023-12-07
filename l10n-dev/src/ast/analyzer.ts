@@ -187,7 +187,7 @@ export class ScriptAnalyzer {
 					message = this.#getStringFromMatch(match, 'message', true)!;
 					const hasMessageTemplateArgs = match.captures.find(c => c.name === 'message_template_arg');
 					if (hasMessageTemplateArgs) {
-						throw new Error(`Message '${message}' contains args via template substitution, i.e. 'l10n.t(\`\$\{foo\}\`)'. Please use double quotes and pass args, i.e. 'l10n.t(\`{0}\`, foo)'.`);
+						throw new Error(`Message '${message}' contains args via template substitution, i.e. 'l10n.t(\`$\{foo}\`)'. Please use double quotes and pass args, i.e. 'l10n.t(\`{0}\`, foo)'.`);
 					}
 				}
 

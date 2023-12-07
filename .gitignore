@@ -63,3 +63,4 @@ lib
 
 tree-sitter-tsx.wasm
 tree-sitter-typescript.wasm
+coverage/
