@@ -73,11 +73,12 @@ export function config(config: { contents: string | l10nJsonFormat } | { fsPath:
             uri = new URL(config.uri);
         }
         return new Promise((resolve, reject) => {
-            const p = reader.readFileFromUri(uri as URL)
+            reader.readFileFromUri(uri as URL)
             .then((uriContent) => {
                 try {
                     const content = JSON.parse(uriContent);
                     bundle = isBuiltinExtension(content) ? content.contents.bundle : content;
+                    resolve();
                 } catch (err) {
                     reject(err);
                 }
@@ -85,7 +86,6 @@ export function config(config: { contents: string | l10nJsonFormat } | { fsPath:
             .catch((err) => {
                 reject(err);
             });
-            resolve(p);
         });
     }
 }

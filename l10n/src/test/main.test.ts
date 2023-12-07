@@ -3,43 +3,29 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import assert from "assert";
-import { createServer } from "http";
-import importFresh from "import-fresh";
+import { describe, expect, it } from '@jest/globals';
 import mock from "mock-fs";
 import { platform } from "process";
+import fetchMock from 'jest-fetch-mock';
 
+fetchMock.enableMocks();
 let l10n: typeof import("../main");
-
-function createServerAsync(contentsToReturn: string): Promise<{ port: number, close: () => void }> {
-    return new Promise((resolve, reject) => {
-        try {
-            const server = createServer((_req, res) => {
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(contentsToReturn);
-            });
-            server.on('error', reject);
-            server.listen(0, () => {
-                resolve({
-                    port: (server.address() as any).port,
-                    close: () => server.close(),
-                });
-            });
-        } catch (e: any) {
-            reject(e);
-        }
-    });
-}
 
 describe('@vscode/l10n', () => {
     beforeEach(() => {
         // ensure we always get a fresh copy of the module
         // so config calls don't bleed between tests
-        l10n = importFresh("../main");
+        // jest.isolateModules(() => {
+            l10n = require("../main");
+        // });
     })
 
+    afterEach(() => {
+        mock.restore();
+    });
+
     it('fallsback when no bundle', () => {
-        assert.strictEqual(l10n.t("message"), "message");
+        expect(l10n.t("message")).toBe("message");
     });
 
     it('load from contents', () => {
@@ -49,7 +35,7 @@ describe('@vscode/l10n', () => {
             }
         });
 
-        assert.strictEqual(l10n.t("message"), "translated message");
+        expect(l10n.t("message")).toBe("translated message");
     });
 
     it('load from file uri', async () => {
@@ -58,11 +44,7 @@ describe('@vscode/l10n', () => {
         });
         await l10n.config({ uri: new URL(platform === 'win32' ? 'file:///c:/mock-bundle.json' : 'file:///mock-bundle.json') });
 
-        try {
-            assert.strictEqual(l10n.t("message"), "translated message");
-        } finally {
-            mock.restore();
-        }
+        expect(l10n.t("message")).toBe("translated message");
     });
 
     it('load from file uri as string', async () => {
@@ -72,31 +54,20 @@ describe('@vscode/l10n', () => {
         await l10n.config({
             uri: new URL(platform === 'win32' ? 'file:///c:/mock-bundle.json' : 'file:///mock-bundle.json').toString()
         });
-        try {
-            assert.strictEqual(l10n.t("message"), "translated message");
-        } finally {
-            mock.restore();
-        }
+
+        expect(l10n.t("message")).toBe("translated message");
     });
 
     it('load from http uri', async () => {
-        const server = await createServerAsync('{ "message": "translated message" }');
-        try {
-            await l10n.config({ uri: new URL(`http://localhost:${server.port}`) });
-            assert.strictEqual(l10n.t("message"), "translated message");
-        } finally {
-            server.close();
-        }
+        fetchMock.mockResponseOnce('{ "message": "translated message" }');
+        await l10n.config({ uri: new URL('http://localhost:1234') });
+        expect(l10n.t("message")).toBe("translated message");
     });
 
     it('load from http uri with built-in schema', async () => {
-        const server = await createServerAsync('{ "version": "1.0.0", "contents": { "bundle": { "message": "translated message" } } }');
-        try {
-            await l10n.config({ uri: new URL(`http://localhost:${server.port}`) });
-            assert.strictEqual(l10n.t("message"), "translated message");
-        } finally {
-            server.close();
-        }
+        fetchMock.mockResponseOnce('{ "version": "1.0.0", "contents": { "bundle": { "message": "translated message" } } }');
+        await l10n.config({ uri: new URL('http://localhost:1234') });
+        expect(l10n.t("message")).toBe("translated message");
     });
 
     it('load from fsPath', async () => {
@@ -106,11 +77,7 @@ describe('@vscode/l10n', () => {
         l10n.config({
             fsPath: platform === 'win32' ? 'C:\\mock-bundle.json' : '/mock-bundle.json'
         });
-        try {
-            assert.strictEqual(l10n.t("message"), "translated message");
-        } finally {
-            mock.restore();
-        }
+        expect(l10n.t("message")).toBe("translated message");
     });
 
     it('load from fsPath with built-in schema', async () => {
@@ -120,11 +87,8 @@ describe('@vscode/l10n', () => {
         l10n.config({
             fsPath: platform === 'win32' ? 'C:\\mock-bundle.json' : '/mock-bundle.json'
         });
-        try {
-            assert.strictEqual(l10n.t("message"), "translated message");
-        } finally {
-            mock.restore();
-        }
+
+        expect(l10n.t("message")).toBe("translated message");
     });
 
     it('supports index args', () => {
@@ -134,7 +98,7 @@ describe('@vscode/l10n', () => {
             }
         });
 
-        assert.strictEqual(l10n.t("message", "foo", "bar"), "translated foo message bar");
+        expect(l10n.t("message", "foo", "bar")).toBe("translated foo message bar");
     });
 
     it('supports record args', () => {
@@ -144,7 +108,7 @@ describe('@vscode/l10n', () => {
             }
         });
 
-        assert.strictEqual(l10n.t("message", { this: "foo", that: "bar" }), "translated foo message bar");
+        expect(l10n.t("message", { this: "foo", that: "bar" })).toBe("translated foo message bar");
     });
 
     it('supports comments', () => {
@@ -162,10 +126,10 @@ describe('@vscode/l10n', () => {
 
         // Normally we would be more static in the declaration of the object
         // in order to extract them properly but for tests we don't need to do that.
-        assert.strictEqual(l10n.t({
+        expect(l10n.t({
             message,
             comment: [comment],
-        }), result);
+        })).toBe(result);
     });
 
     it('supports index args and comments', () => {
@@ -183,11 +147,11 @@ describe('@vscode/l10n', () => {
 
         // Normally we would be more static in the declaration of the object
         // in order to extract them properly but for tests we don't need to do that.
-        assert.strictEqual(l10n.t({
+        expect(l10n.t({
             message,
             comment: [comment],
             args: ['foo']
-        }), result);
+        })).toBe(result);
     });
 
     it('supports object args and comments', () => {
@@ -205,11 +169,11 @@ describe('@vscode/l10n', () => {
 
         // Normally we would be more static in the declaration of the object
         // in order to extract them properly but for tests we don't need to do that.
-        assert.strictEqual(l10n.t({
+        expect(l10n.t({
             message,
             comment: [comment],
             args: { this: 'foo' }
-        }), result);
+        })).toBe(result);
     });
 
     it('supports template literals', () => {
@@ -221,17 +185,17 @@ describe('@vscode/l10n', () => {
 
         const a = 'foo';
         const b = 'bar';
-        assert.strictEqual(l10n.t`original ${a} message ${b}`, "translated foo message bar");
+        expect(l10n.t`original ${a} message ${b}`).toBe("translated foo message bar");
     });
 
     //#region error cases
 
     it('rejects when uri does not resolve', () => {
-        assert.rejects(() => l10n.config({ uri: new URL('http://localhost:1234') }));
+        return expect(l10n.config({ uri: new URL('http://localhost:1234') })).rejects.toThrow();
     });
 
     it('throws when file path does not exist', () => {
-        assert.throws(() => l10n.config({ fsPath: '/does-not-exist' }));
+        expect(() => l10n.config({ fsPath: '/does-not-exist' })).toThrow();
     })
 
     //#endregion
