@@ -3,18 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from 'assert';
+import { describe, beforeEach, afterEach, it, expect } from '@jest/globals';
 import { readFileSync } from "fs";
 import mock from "mock-fs";
 import path from "path";
 import * as cli from "../cli";
 
+// TODO: Is there a better way to do this?
+const tsGrammarPath = path.resolve(__dirname, '../ast/tree-sitter-typescript.wasm');
+const tsxGrammarPath = path.resolve(__dirname, '../ast/tree-sitter-tsx.wasm');
+
 describe('cli', () => {
-	context('l10nExportStrings', () => {
-		before(() => {
+	describe('l10nExportStrings', () => {
+		beforeEach(() => {
 			mock({
 				'big.ts': mock.load(path.resolve(__dirname, 'testcases/big.txt')),
-				'package.json': '{ "l10n": "./l10n"}'
+				'package.json': '{ "l10n": "./l10n"}',
+				[tsGrammarPath]: mock.load(tsGrammarPath),
+				[tsxGrammarPath]: mock.load(tsxGrammarPath),
 			});
 		})
 		afterEach(() => {
@@ -48,12 +54,12 @@ describe('cli', () => {
 			for (let i = 0; i < expectedLines.length; i++) {
 				const expectedLine = expectedLines[i];
 				const actualLine = actualLines[i];
-				assert.strictEqual(actualLine, expectedLine);
+				expect(actualLine).toBe(expectedLine);
 			}
 		});
 	});
-	context('l10nGenerateXlf', () => {
-		before(() => {
+	describe('l10nGenerateXlf', () => {
+		beforeEach(() => {
 			mock({
 				'bundle.l10n.json': mock.load(path.resolve(__dirname, 'testcases/testBundle.json'))
 			});
@@ -92,12 +98,12 @@ describe('cli', () => {
 			for (let i = 0; i < expectedLines.length; i++) {
 				const expectedLine = expectedLines[i];
 				const actualLine = actualLines[i];
-				assert.strictEqual(actualLine, expectedLine);
+				expect(actualLine).toBe(expectedLine);
 			}
 		});
 	});
-	context('l10nImportXlf', () => {
-		before(() => {
+	describe('l10nImportXlf', () => {
+		beforeEach(() => {
 			mock({
 				'test.xlf': mock.load(path.resolve(__dirname, 'testcases/test.xml'))
 			});
@@ -121,7 +127,7 @@ describe('cli', () => {
 			for (let i = 0; i < bundleExpectedLines.length; i++) {
 				const expectedLine = bundleExpectedLines[i];
 				const actualLine = bundleActualLines[i];
-				assert.strictEqual(actualLine, expectedLine);
+				expect(actualLine).toBe(expectedLine);
 			}
 
 			const packageResult = readFileSync('l10n/package.nls.qps-ploc.json', 'utf8');
@@ -138,13 +144,13 @@ describe('cli', () => {
 			for (let i = 0; i < packageExpectedLines.length; i++) {
 				const expectedLine = packageExpectedLines[i];
 				const actualLine = packageActualLines[i];
-				assert.strictEqual(actualLine, expectedLine);
+				expect(actualLine).toBe(expectedLine);
 			}
 		});
 	});
 
-	context('l10nGeneratePseudo', () => {
-		before(() => {
+	describe('l10nGeneratePseudo', () => {
+		beforeEach(() => {
 			mock({
 				'bundle.l10n.json': mock.load(path.resolve(__dirname, 'testcases/testBundle.json'))
 			});
@@ -168,7 +174,7 @@ describe('cli', () => {
 			for (let i = 0; i < expectedLines.length; i++) {
 				const expectedLine = expectedLines[i];
 				const actualLine = actualLines[i];
-				assert.strictEqual(actualLine, expectedLine);
+				expect(actualLine).toBe(expectedLine);
 			}
 		});
 	});

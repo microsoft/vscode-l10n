@@ -3,23 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
+import { describe, it, expect } from '@jest/globals';
 import { XLF } from "../xlf";
 
 describe('XLF', () => {
-    context('toString', () => {
+    describe('toString', () => {
         it('bundle files', () => {
             const xlf = new XLF();
             xlf.addFile('bundle', { Hello: 'Hello' });
             const result = xlf.toString();
-            assert.strictEqual(result, '<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="bundle" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="++CODE++185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969">\r\n      <source xml:lang="en">Hello</source>\r\n    </trans-unit>\r\n  </body></file>\r\n</xliff>');
+            expect(result).toBe('<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="bundle" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="++CODE++185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969">\r\n      <source xml:lang="en">Hello</source>\r\n    </trans-unit>\r\n  </body></file>\r\n</xliff>');
         });
     
         it('package files', () => {
             const xlf = new XLF();
             xlf.addFile('package', { Hello: 'World' });
             const result = xlf.toString();
-            assert.strictEqual(result, '<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="package" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="Hello">\r\n      <source xml:lang="en">World</source>\r\n    </trans-unit>\r\n  </body></file>\r\n</xliff>');
+            expect(result).toBe('<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="package" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="Hello">\r\n      <source xml:lang="en">World</source>\r\n    </trans-unit>\r\n  </body></file>\r\n</xliff>');
         });
 
         it('sorts files by name and items by message', () => {
@@ -33,7 +33,7 @@ describe('XLF', () => {
             const nextFile = '\r\n  </body></file>\r\n  <file original="b" source-language="en" datatype="plaintext"><body>';
             const footer = '\r\n  </body></file>\r\n</xliff>';
 
-            assert.strictEqual(result, header + a + b + nextFile + a + b + footer);
+            expect(result).toBe(header + a + b + nextFile + a + b + footer);
         });
     
         it('escapes things correctly', () => {
@@ -70,7 +70,7 @@ describe('XLF', () => {
             const quotesWithNote = '\r\n    <trans-unit id="++CODE++a09b5ca601ce81d6a5aa65efb38a0bdf9743044b2e83ca2231ad72e8f4d7e759">\r\n      <source xml:lang="en">&quot;&quot;</source>\r\n      <note>&quot;&quot;</note>\r\n    </trans-unit>';
             const quotes = '\r\n    <trans-unit id="++CODE++eac56912e89dd33f3372f8cb3bc427c679f2bfe57eb88c129e1567e32ef6397b">\r\n      <source xml:lang="en">&quot;&quot;</source>\r\n    </trans-unit>';
             const footer = '\r\n  </body></file>\r\n</xliff>';
-            assert.strictEqual(result,
+            expect(result).toBe(
                 header
                 + newlinesWithNote
                 + newlines
@@ -90,7 +90,7 @@ describe('XLF', () => {
         });
     });
 
-    context('parse', () => {
+    describe('parse', () => {
         it('parses bundle and package files differently', async () => {
             const result = await XLF.parse(`
     <?xml version="1.0" encoding="utf-8"?>
@@ -113,17 +113,17 @@ describe('XLF', () => {
     </file>
     </xliff>`);
 
-            assert.ok(result);
-            assert.strictEqual(result.length, 2);
-            assert.strictEqual(result[0]!.language, 'de');
-            assert.strictEqual(result[0]!.name, 'bundle');
-            assert.ok(result[0]!.messages['Hello']);
-            assert.strictEqual(result[0]!.messages['Hello'], 'World');
+            expect(result).toBeTruthy();
+            expect(result.length).toBe(2);
+            expect(result[0]!.language).toBe('de');
+            expect(result[0]!.name).toBe('bundle');
+            expect(result[0]!.messages['Hello']).toBeTruthy();
+            expect(result[0]!.messages['Hello']).toBe('World');
 
-            assert.strictEqual(result[1]!.language, 'de');
-            assert.strictEqual(result[1]!.name, 'package');
-            assert.ok(result[1]!.messages['id']);
-            assert.strictEqual(result[1]!.messages['id'], 'World');
+            expect(result[1]!.language).toBe('de');
+            expect(result[1]!.name).toBe('package');
+            expect(result[1]!.messages['id']).toBeTruthy();
+            expect(result[1]!.messages['id']).toBe('World');
         });
 
         it('parses comments correctly by excluding newlines', async () => {
@@ -152,17 +152,17 @@ note2</note>
     </file>
     </xliff>`);
 
-            assert.ok(result);
-            assert.strictEqual(result.length, 2);
-            assert.strictEqual(result[0]!.language, 'de');
-            assert.strictEqual(result[0]!.name, 'bundle');
-            assert.ok(result[0]!.messages['Hello/note1note2']);
-            assert.strictEqual(result[0]!.messages['Hello/note1note2'], 'World');
+            expect(result).toBeTruthy();
+            expect(result.length).toBe(2);
+            expect(result[0]!.language).toBe('de');
+            expect(result[0]!.name).toBe('bundle');
+            expect(result[0]!.messages['Hello/note1note2']).toBeTruthy();
+            expect(result[0]!.messages['Hello/note1note2']).toBe('World');
 
-            assert.strictEqual(result[1]!.language, 'de');
-            assert.strictEqual(result[1]!.name, 'package');
-            assert.ok(result[1]!.messages['id']);
-            assert.strictEqual(result[1]!.messages['id'], 'World');
+            expect(result[1]!.language).toBe('de');
+            expect(result[1]!.name).toBe('package');
+            expect(result[1]!.messages['id']).toBeTruthy();
+            expect(result[1]!.messages['id']).toBe('World');
         });
 
         it('parses special characters correctly', async () => {
@@ -203,24 +203,24 @@ note2</note>
     </file>
     </xliff>`);
     
-            assert.ok(result);
-            assert.strictEqual(result.length, 1);
-            assert.strictEqual(result[0]!.language, 'de');
-            assert.strictEqual(result[0]!.name, 'bundle');
-            assert.ok(result[0]!.messages['a string with two newlines\n\n']);
-            assert.strictEqual(result[0]!.messages['a string with two newlines\n\n'], 'a string with two newlines\n\n');
-            assert.ok(result[0]!.messages['a string with two carriage return line feeds\r\n\r\n']);
-            assert.strictEqual(result[0]!.messages['a string with two carriage return line feeds\r\n\r\n'], 'a string with two carriage return line feeds\r\n\r\n');
-            assert.ok(result[0]!.messages['""']);
-            assert.strictEqual(result[0]!.messages['""'], '""');
-            assert.ok(result[0]!.messages["''"]);
-            assert.strictEqual(result[0]!.messages["''"], "''");
-            assert.ok(result[0]!.messages['<<']);
-            assert.strictEqual(result[0]!.messages['<<'], '<<');
-            assert.ok(result[0]!.messages['>>']);
-            assert.strictEqual(result[0]!.messages['>>'], '>>');
-            assert.ok(result[0]!.messages['&&']);
-            assert.strictEqual(result[0]!.messages['&&'], '&&');
+            expect(result).toBeTruthy();
+            expect(result.length).toBe(1);
+            expect(result[0]!.language).toBe('de');
+            expect(result[0]!.name).toBe('bundle');
+            expect(result[0]!.messages['a string with two newlines\n\n']).toBeTruthy();
+            expect(result[0]!.messages['a string with two newlines\n\n']).toBe('a string with two newlines\n\n');
+            expect(result[0]!.messages['a string with two carriage return line feeds\r\n\r\n']).toBeTruthy();
+            expect(result[0]!.messages['a string with two carriage return line feeds\r\n\r\n']).toBe('a string with two carriage return line feeds\r\n\r\n');
+            expect(result[0]!.messages['""']).toBeTruthy();
+            expect(result[0]!.messages['""']).toBe('""');
+            expect(result[0]!.messages["''"]).toBeTruthy();
+            expect(result[0]!.messages["''"]).toBe("''");
+            expect(result[0]!.messages['<<']).toBeTruthy();
+            expect(result[0]!.messages['<<']).toBe('<<');
+            expect(result[0]!.messages['>>']).toBeTruthy();
+            expect(result[0]!.messages['>>']).toBe('>>');
+            expect(result[0]!.messages['&&']).toBeTruthy();
+            expect(result[0]!.messages['&&']).toBe('&&');
         });
 
         it ('sorts files by name and then messages by key', async () => {
@@ -254,20 +254,20 @@ note2</note>
     </file>
     </xliff>`);
 
-            assert.ok(result);
-            assert.strictEqual(result.length, 2);
+            expect(result).toBeTruthy();
+            expect(result.length).toBe(2);
 
-            assert.strictEqual(result[0]!.name, '1');
-            assert.ok(result[0]!.messages['a']);
-            assert.strictEqual(result[0]!.messages['a'], 'a');
-            assert.ok(result[1]!.messages['b']);
-            assert.strictEqual(result[1]!.messages['b'], 'b');
+            expect(result[0]!.name).toBe('1');
+            expect(result[0]!.messages['a']).toBeTruthy();
+            expect(result[0]!.messages['a']).toBe('a');
+            expect(result[1]!.messages['b']).toBeTruthy();
+            expect(result[1]!.messages['b']).toBe('b');
 
-            assert.strictEqual(result[1]!.name, '2');
-            assert.ok(result[0]!.messages['a']);
-            assert.strictEqual(result[0]!.messages['a'], 'a');
-            assert.ok(result[1]!.messages['b']);
-            assert.strictEqual(result[1]!.messages['b'], 'b');
+            expect(result[1]!.name).toBe('2');
+            expect(result[0]!.messages['a']).toBeTruthy();
+            expect(result[0]!.messages['a']).toBe('a');
+            expect(result[1]!.messages['b']).toBeTruthy();
+            expect(result[1]!.messages['b']).toBe('b');
         });
     });
 });

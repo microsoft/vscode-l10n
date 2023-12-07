@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { describe, expect, it } from '@jest/globals';
+import { describe, beforeEach, afterEach, expect, it, jest } from '@jest/globals';
 import mock from "mock-fs";
 import { platform } from "process";
 import fetchMock from 'jest-fetch-mock';
@@ -15,9 +15,9 @@ describe('@vscode/l10n', () => {
     beforeEach(() => {
         // ensure we always get a fresh copy of the module
         // so config calls don't bleed between tests
-        // jest.isolateModules(() => {
+        jest.isolateModules(() => {
             l10n = require("../main");
-        // });
+        });
     })
 
     afterEach(() => {

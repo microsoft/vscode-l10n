@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import assert from 'assert';
+import { describe, it, expect } from "@jest/globals";
 import { getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf } from "../main";
 
 describe('main', () => {
-	context('getL10nJson', () => {
+	describe('getL10nJson', () => {
 		it('works for ts', async () => {
 			const result = await getL10nJson([{
 				extension: '.ts',
@@ -15,7 +15,7 @@ describe('main', () => {
 					import * as vscode from "vscode";
 					vscode.l10n.t("Hello World");`
 			}]);
-			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World"}');
+			expect(JSON.stringify(result)).toBe('{"Hello World":"Hello World"}');
 		});
 
 		it('works for js', async () => {
@@ -25,7 +25,7 @@ describe('main', () => {
 					const vscode = require("vscode");
 					vscode.l10n.t("Hello World");`
 			}]);
-			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World"}');
+			expect(JSON.stringify(result)).toBe('{"Hello World":"Hello World"}');
 		});
 
 		it('works for tsx', async () => {
@@ -43,7 +43,7 @@ describe('main', () => {
 						);
 					}`
 			}]);
-			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World","Hello Globe":"Hello Globe"}');
+			expect(JSON.stringify(result)).toBe('{"Hello World":"Hello World","Hello Globe":"Hello Globe"}');
 		});
 
 		it('works for jsx', async () => {
@@ -60,7 +60,7 @@ describe('main', () => {
 						);
 					}`
 			}]);
-			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World","Hello Globe":"Hello Globe"}');
+			expect(JSON.stringify(result)).toBe('{"Hello World":"Hello World","Hello Globe":"Hello Globe"}');
 		});
 
 		it('using a TS construct that could be confused as JS should also work fine', async () => {
@@ -73,11 +73,11 @@ describe('main', () => {
 					console.log(<any>"foo");
 					vscode.l10n.t("Hello World");`
 			}]);
-			assert.strictEqual(JSON.stringify(result), '{"Hello World":"Hello World"}');
+			expect(JSON.stringify(result)).toBe('{"Hello World":"Hello World"}');
 		});
 	});
 
-	context('getL10nXlf', () => {
+	describe('getL10nXlf', () => {
 		it('works', () => {
 			const map = new Map();
 			map.set('a', {
@@ -87,11 +87,11 @@ describe('main', () => {
 				'Hello Universe': 'Hello Universe',
 			});
 			const xlf = getL10nXlf(map);
-			assert.strictEqual(xlf, '<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="a" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="++CODE++a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e">\r\n      <source xml:lang="en">Hello World</source>\r\n    </trans-unit>\r\n  </body></file>\r\n  <file original="b" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="++CODE++d73d0e9e4c117844d0621a950e8b65c635d023e12a5e6f80b89d077a6b14a71b">\r\n      <source xml:lang="en">Hello Universe</source>\r\n    </trans-unit>\r\n  </body></file>\r\n</xliff>');
+			expect(xlf).toBe('<?xml version="1.0" encoding="utf-8"?>\r\n<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\r\n  <file original="a" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="++CODE++a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e">\r\n      <source xml:lang="en">Hello World</source>\r\n    </trans-unit>\r\n  </body></file>\r\n  <file original="b" source-language="en" datatype="plaintext"><body>\r\n    <trans-unit id="++CODE++d73d0e9e4c117844d0621a950e8b65c635d023e12a5e6f80b89d077a6b14a71b">\r\n      <source xml:lang="en">Hello Universe</source>\r\n    </trans-unit>\r\n  </body></file>\r\n</xliff>');
 		});
 	});
 
-	context('getL10nFilesFromXlf', () => {
+	describe('getL10nFilesFromXlf', () => {
 		function generateTextXLF(language: string): string {
 			return `
 <?xml version="1.0" encoding="utf-8"?>
@@ -118,29 +118,29 @@ describe('main', () => {
 
 		it('works', async () => {
 			const details = await getL10nFilesFromXlf(generateTextXLF('de'))
-			assert.strictEqual(details.length, 2);
-			assert.strictEqual(details[0]!.name, 'bundle');
-			assert.strictEqual(details[0]!.language, 'de');
-			assert.strictEqual(details[0]!.messages['Hello'], 'World');
-			assert.strictEqual(details[1]!.name, 'package');
-			assert.strictEqual(details[1]!.language, 'de');
-			assert.strictEqual(details[1]!.messages['id'], 'World');
+			expect(details.length).toBe(2);
+			expect(details[0]!.name).toBe('bundle');
+			expect(details[0]!.language).toBe('de');
+			expect(details[0]!.messages['Hello']).toBe('World');
+			expect(details[1]!.name).toBe('package');
+			expect(details[1]!.language).toBe('de');
+			expect(details[1]!.messages['id']).toBe('World');
 		});
 
 		it('properly changes some of the languages based on VS Code language packs', async () => {
 			let details = await getL10nFilesFromXlf(generateTextXLF('zh-Hans'))
-			assert.strictEqual(details.length, 2);
-			assert.strictEqual(details[0]!.language, 'zh-cn');
+			expect(details.length).toBe(2);
+			expect(details[0]!.language).toBe('zh-cn');
 			details = await getL10nFilesFromXlf(generateTextXLF('zh-Hant'))
-			assert.strictEqual(details.length, 2);
-			assert.strictEqual(details[0]!.language, 'zh-tw');
+			expect(details.length).toBe(2);
+			expect(details[0]!.language).toBe('zh-tw');
 			details = await getL10nFilesFromXlf(generateTextXLF('pt-BR'))
-			assert.strictEqual(details.length, 2);
-			assert.strictEqual(details[0]!.language, 'pt-br');
+			expect(details.length).toBe(2);
+			expect(details[0]!.language).toBe('pt-br');
 		});
 	});
 
-	context('getL10nPseudoLocalized', () => {
+	describe('getL10nPseudoLocalized', () => {
 		it('works', () => {
 			const l10nContents = {
 				// base case
@@ -159,7 +159,7 @@ describe('main', () => {
 			};
 
 			const result = getL10nPseudoLocalized(l10nContents);
-			assert.strictEqual(JSON.stringify(result), '{"Hello":"Ħḗḗŀŀǿǿ","$(alert) Hello":"$(alert) Ħḗḗŀŀǿǿ","[hello](command:hello)":"[ħḗḗŀŀǿǿ](command:hello)","{Hello {this}}":"{Ħḗḗŀŀǿǿ {this}}","Hello/Hello":"Ħḗḗŀŀǿǿ"}');
+			expect(JSON.stringify(result)).toBe('{"Hello":"Ħḗḗŀŀǿǿ","$(alert) Hello":"$(alert) Ħḗḗŀŀǿǿ","[hello](command:hello)":"[ħḗḗŀŀǿǿ](command:hello)","{Hello {this}}":"{Ħḗḗŀŀǿǿ {this}}","Hello/Hello":"Ħḗḗŀŀǿǿ"}');
 		});
 	});
 });
