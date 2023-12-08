@@ -57,15 +57,25 @@ export class ScriptAnalyzer {
 		if (!commentCapture) {
 			return [];
 		}
-		if (commentCapture.node.type === 'string') {
+		if (commentCapture.node.type === 'string' || commentCapture.node.type === 'template_string') {
 			const text = commentCapture.node.text;
 			return [this.#getUnquotedString(text)];
 		}
 
 		// we have an array of comments
 		return commentCapture.node.children
-			.filter(c => c.type === 'string')
-			.map(c => this.#getUnquotedString(c.text));
+			.filter(c => c.type === 'string' || c.type === 'template_string')
+			.map(c => this.#getUnquotedString(c.type === 'string' ? c.text : this.#getTemplateValueFromTemplateRawValue(c.text)));
+	}
+
+	/**
+	 * For template strings, the actual template value (TV) is normalized to using LF (\n) as line separator.
+	 * however, the template raw value (TRV) is the original value, which may use CRLF (\r\n) as line separator.
+	 * So we need to normalize the TRV to use LF as line separator so that at runtime, these two values are the same.
+	 * See NOTE in https://tc39.es/ecma262/2021/#sec-static-semantics-tv-and-trv
+	 */
+	#getTemplateValueFromTemplateRawValue(templateRawValue: string): string {
+		return templateRawValue.replace(/\r\n/g, '\n');
 	}
 
 	#getStringFromMatch(match: QueryMatch, id: string, unescape: boolean): string | undefined {
@@ -73,7 +83,10 @@ export class ScriptAnalyzer {
 		if (!capture) {
 			return undefined;
 		}
-		const text = capture.node.text;
+		let text = capture.node.text;
+		if (capture.node.type === 'template_string') {
+			text = this.#getTemplateValueFromTemplateRawValue(text);
+		}
 		// remove quotes
 		if (!unescape) {
 			return text;
@@ -172,18 +185,20 @@ export class ScriptAnalyzer {
 			const query = grammar.query(getTQuery(importDetails));
 			const matches = query.matches(parsed.rootNode);
 			for (const match of matches) {
-				const template = match.captures.find(c => c.name === 'template');
+				const taggedTemplate = match.captures.find(c => c.name === 'tagged_template');
 				let message: string;
-				if (template) {
+				// handles l10n.t`foo`
+				if (taggedTemplate) {
 					const subs = match.captures.filter(c => c.name === 'sub');
-					const start = template.node.startIndex;
-					message = template.node.text;
+					const start = taggedTemplate.node.startIndex;
+					message = this.#getTemplateValueFromTemplateRawValue(taggedTemplate.node.text);
 					for (let i = subs.length - 1; i >= 0; i--) {
 						const sub = subs[i]!;
 						message = message.slice(0, sub.node.startIndex - start) + `{${i}}` + message.slice(sub.node.endIndex - start);
 					}
 					message = this.#getUnquotedString(message);
 				} else {
+					// handles l10n.t(`foo`)
 					message = this.#getStringFromMatch(match, 'message', true)!;
 					const hasMessageTemplateArgs = match.captures.find(c => c.name === 'message_template_arg');
 					if (hasMessageTemplateArgs) {

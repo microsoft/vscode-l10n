@@ -180,7 +180,7 @@ describe('ScriptAnalyzer', () => {
         });
     });
 
-    describe('usage of l10n.t literal', () => {
+    describe('usage of l10n.t tagged template', () => {
         it('args are object with comment as string', async () => {
             const analyzer = new ScriptAnalyzer();
             const key = `hello {0} and {1}!`;
@@ -224,6 +224,16 @@ describe('ScriptAnalyzer', () => {
                     l10n.t\`foo\\"bar'\``
             });
             expect(result).toEqual({ 'foo"bar\'': 'foo"bar\'' });
+        });
+
+        it('allows tagged template messages with new lines', async () => {
+            const analyzer = new ScriptAnalyzer();
+            const result = await analyzer.analyze({
+                extension: '.ts',
+                contents: "import * as l10n from '@vscode/l10n';\r\nl10n.t\`a\r\nb\`"
+            });
+            expect(Object.keys(result!).length).toBe(1);
+            expect(result![`a\nb`]!).toBe(`a\nb`);
         });
     });
 
@@ -354,20 +364,27 @@ describe('ScriptAnalyzer', () => {
             const analyzer = new ScriptAnalyzer();
             const result = await analyzer.analyze({
                 extension: '.ts',
-                contents: `import * as l10n from '@vscode/l10n';
-l10n.t(\`a
-b\`)` 
+                contents: "import * as l10n from '@vscode/l10n';\r\nl10n.t(\`a\r\nb\`)"
             });
             expect(Object.keys(result!).length).toBe(1);
-            expect(result![`a
-b`]!).toBe(`a
-b`);
+            expect(result![`a\nb`]!).toBe(`a\nb`);
         });
 
         it('disallows template literal messages containing template args in l10n.t() calls', async () => {
             const analyzer = new ScriptAnalyzer();
             const result = analyzer.analyze({ extension: '.ts', contents: "import * as l10n from '@vscode/l10n';\nl10n.t(`${42}`)" });
             await expect(result).rejects.toThrow();
+        });
+
+        it('allows template literal comments with new lines', async () => {
+            const analyzer = new ScriptAnalyzer();
+            const result = await analyzer.analyze({
+                extension: '.ts',
+                contents: "import * as l10n from '@vscode/l10n';l10n.t({ message: 'a', comment: [\`a\r\nb\`] });"
+            });
+            expect(Object.keys(result!).length).toBe(1);
+            expect((result!['a/a\nb']! as { message: string }).message).toBe('a');
+            expect((result!['a/a\nb']! as { comment: string[] }).comment[0]).toBe('a\nb');
         });
     });
 });
