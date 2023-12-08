@@ -75,7 +75,7 @@ export function getTQuery({ vscode = 'vscode', l10n = 'l10n', t = 't' }: IAltern
 			property: (property_identifier) @t (#eq? @t ${t})
 		)
 		arguments: [
-			(template_string (template_substitution)* @sub) @template
+			(template_string (template_substitution)* @sub) @tagged_template
 			(arguments . [(string) (template_string (template_substitution)? @message_template_arg)] @message)
 			(arguments . (number) @message)
 			(arguments . (object
