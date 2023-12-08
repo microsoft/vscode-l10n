@@ -350,6 +350,20 @@ describe('ScriptAnalyzer', () => {
             expect(result!['foo']!).toBe('foo');
         });
 
+        it('allows template literal messages with new lines', async () => {
+            const analyzer = new ScriptAnalyzer();
+            const result = await analyzer.analyze({
+                extension: '.ts',
+                contents: `import * as l10n from '@vscode/l10n';
+l10n.t(\`a
+b\`)` 
+            });
+            expect(Object.keys(result!).length).toBe(1);
+            expect(result![`a
+b`]!).toBe(`a
+b`);
+        });
+
         it('disallows template literal messages containing template args in l10n.t() calls', async () => {
             const analyzer = new ScriptAnalyzer();
             const result = analyzer.analyze({ extension: '.ts', contents: "import * as l10n from '@vscode/l10n';\nl10n.t(`${42}`)" });
