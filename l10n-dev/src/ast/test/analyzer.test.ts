@@ -258,6 +258,26 @@ describe('ScriptAnalyzer', () => {
             expect((result[key]! as { comment: string[] }).comment[0]).toBe(comment);
         });
 
+        it('args are object with comment as template string', async () => {
+            const analyzer = new ScriptAnalyzer();
+            const comment = 'This is a comment';
+            const key = `${basecaseText}/${comment}`;
+            const result = await analyzer.analyze({
+                extension: '.ts',
+                contents: `
+                    import { l10n } from 'vscode';
+                    l10n.t({
+                        message: '${basecaseText}',
+                        comment: \`${comment}\`,
+                        args: ['this is an arg']
+                    });`
+            });
+            expect(Object.keys(result!).length).toBe(1);
+            expect((result[key]! as { message: string }).message).toBe(basecaseText);
+            expect((result[key]! as { comment: string[] }).comment.length).toBe(1);
+            expect((result[key]! as { comment: string[] }).comment[0]).toBe(comment);
+        });
+
         it('args are object with comments as array', async () => {
             const analyzer = new ScriptAnalyzer();
             const comment = 'This is a comment';
@@ -269,6 +289,26 @@ describe('ScriptAnalyzer', () => {
                     l10n.t({
                         message: '${basecaseText}',
                         comment: ['${comment}'],
+                        args: ['this is an arg']
+                    });`
+            });
+            expect(Object.keys(result!).length).toBe(1);
+            expect((result[key]! as { message: string }).message).toBe(basecaseText);
+            expect((result[key]! as { comment: string[] }).comment.length).toBe(1);
+            expect((result[key]! as { comment: string[] }).comment[0]).toBe(comment);
+        });
+
+        it('args are object with comments as array of template string', async () => {
+            const analyzer = new ScriptAnalyzer();
+            const comment = 'This is a comment';
+            const key = `${basecaseText}/${comment}`;
+            const result = await analyzer.analyze({
+                extension: '.ts',
+                contents: `
+                    import { l10n } from 'vscode';
+                    l10n.t({
+                        message: '${basecaseText}',
+                        comment: [\`${comment}\`],
                         args: ['this is an arg']
                     });`
             });
