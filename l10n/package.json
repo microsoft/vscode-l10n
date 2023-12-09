@@ -1,6 +1,6 @@
 {
   "name": "@vscode/l10n",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "A helper library to assist in localizing subprocesses spun up by VS Code extensions",
   "author": "Microsoft Corporation",
   "license": "MIT",
@@ -44,7 +44,7 @@
     "compile": "npm run clean && tsc --emitDeclarationOnly --outDir lib && node .esbuild.config.js",
     "lint": "eslint src --ext ts",
     "watch": "node .esbuild.config.js --watch",
-    "test": "jest",
+    "test": "jest --preset ts-jest",
     "prepublishOnly": "npm run lint && npm run compile && npm run test"
   }
 }
