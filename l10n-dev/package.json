@@ -55,7 +55,7 @@
 		"compile": "npm run clean && tsc --emitDeclarationOnly --outDir lib && node .esbuild.config.mjs",
 		"lint": "eslint src --ext ts",
 		"watch": "node .esbuild.config.mjs --watch",
-		"test": "jest jest --preset ts-jest",
+		"test": "jest --preset ts-jest",
 		"prepublishOnly": "npm run lint && npm run compile && npm run test"
 	}
 }
