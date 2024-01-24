@@ -14,6 +14,7 @@ function handleSuccess(outputs: TranslatedTextItemOutput[], keys: string[]) {
 		const output = outputs[i];
 		output?.translations.forEach((translation, languageIndex) => {
 			files[languageIndex] ??= {};
+			// Translate HTML back to markdown
 			files[languageIndex]![keys[i]!] = NodeHtmlMarkdown.translate(translation.text);
 		});
 	}
@@ -31,6 +32,7 @@ export async function azureTranslatorTranslate(dataToLocalize: l10nJsonFormat, l
 	for (const key of keys) {
 		const value = dataToLocalize[key];
 		const message = typeof value === 'string' ? value : value!.message;
+		// Render markdown to HTML since Azure Translator supports HTML and not markdown
 		const html = md.render(message);
 
 		body.push({ text: html });
