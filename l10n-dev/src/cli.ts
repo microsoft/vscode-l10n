@@ -6,7 +6,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import * as glob from 'glob';
-import { getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf, l10nJsonFormat } from "./main";
+import { getL10nAzureLocalized, getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf, l10nJsonFormat } from "./main";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { logger, LogLevel } from "./logger";
@@ -124,6 +124,39 @@ yargs(hideBin(process.argv))
 		});
 	}, function (argv) {
 		l10nGeneratePseudo(argv.path as string[], argv.language as string);
+	})
+.command(
+	'generate-azure [args] <path..>',
+	'(Experimental) Generate language files for `*.l10n.json` or `package.nls.json` files. You must create an Azure Translator instance, get the key and region, and set the AZURE_TRANSLATOR_KEY and AZURE_TRANSLATOR_REGION environment variables to these values.',
+	yargs => {
+		yargs.positional('path', {
+			demandOption: true,
+			type: 'string',
+			array: true,
+			normalize: true,
+			describe: 'L10N JSON files to generate an XLF from. Supports folders and glob patterns.'
+		});
+		yargs.option('languages', {
+			alias: 'l',
+			type: 'string',
+			array: true,
+			default: ['de', 'fr', 'ja', 'ru', 'zh-cn', 'zh-tw', 'it', 'ko', 'es'],
+			describe: 'The Pseudo language identifier that will be used.'
+		});
+		yargs.env('AZURE_TRANSLATOR');
+	}, async function (argv) {
+		if (!argv.key) {
+			throw new Error('AZURE_TRANSLATOR_KEY environment variable is not defined.');
+		}
+		if (!argv.region) {
+			throw new Error('AZURE_TRANSLATOR_REGION environment variable is not defined.');
+		}
+		await l10nGenerateTranslationService(
+			argv.path as string[],
+			argv.languages as string[],
+			argv.key as string,
+			argv.region as string
+		);
 	})
 .help().argv;
 
@@ -273,4 +306,42 @@ export function l10nGeneratePseudo(paths: string[], language: string): void {
 		return;
 	}
 	logger.log(`Wrote ${matches.length} L10N JSON files.`);
+}
+
+export async function l10nGenerateTranslationService(paths: string[], languages: string[], key: string, region: string): Promise<void> {
+	logger.log('Searching for L10N JSON files...');
+
+	const matches = glob.sync(
+		paths.map(p => /(\.l10n\.json|package\.nls\.json)$/.test(p) ? p : path.posix.join(p, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}')),
+		GLOB_DEFAULTS
+	);
+
+	for (const match of matches) {
+		const contents = await getL10nAzureLocalized(
+			JSON.parse(readFileSync(path.resolve(match), 'utf8')),
+			languages,
+			{ azureTranslatorKey: key, azureTranslatorRegion: region }
+		);
+		for (let i = 0; i < languages.length; i++) {
+			const language = languages[i];
+			if (match.endsWith('.l10n.json')) {
+				const name = path.basename(match).split('.l10n.json')[0] ?? '';
+				writeFileSync(
+					path.resolve(path.join(path.dirname(match), `${name}.l10n.${language}.json`)),
+					JSON.stringify(contents[i], undefined, 2)
+				);
+			} else if (path.basename(match) === 'package.nls.json') {
+				writeFileSync(
+					path.resolve(path.join(path.dirname(match), `package.nls.${language}.json`)),
+					JSON.stringify(contents[i], undefined, 2)
+				);
+			}
+		}
+	}
+
+	if (!matches.length) {
+		logger.log('No L10N JSON files.');
+		return;
+	}
+	logger.log(`Wrote ${matches.length * languages.length} L10N JSON files.`);
 }
