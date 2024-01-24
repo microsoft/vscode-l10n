@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import merge from 'deepmerge-json';
-import { localize } from 'pseudo-localization';
 import { ScriptAnalyzer } from "./ast/analyzer";
 import { IScriptFile, l10nJsonDetails, l10nJsonFormat } from './common';
 import { logger } from './logger';
 import { XLF } from "./xlf/xlf";
+import { azureTranslatorTranslate } from './translators/azure';
+import { pseudoLocalizedTranslate } from './translators/pseudo';
 
 export { l10nJsonDetails, l10nJsonFormat, l10nJsonMessageFormat, IScriptFile } from './common';
 
@@ -115,25 +116,27 @@ export async function getL10nFilesFromXlf(xlfContents: string): Promise<l10nJson
 export function getL10nPseudoLocalized(dataToLocalize: l10nJsonFormat): l10nJsonFormat {
 	logger.debug('Localizing data using pseudo-localization...');
 	
-	// deep clone
-	const contents = JSON.parse(JSON.stringify(dataToLocalize));
-	for(const key of Object.keys(contents)) {
-		const value = contents[key];
-		const message = typeof value === 'string' ? value : value!.message;
-		let index = 0;
-		let localized = '';
-		// escape command and icon syntax
-		for (const match of message.matchAll(/(?:\(command:\S+)|(?:\$\([A-Za-z-~]+\))|(?:\{\S+\})/g)) {
-			const section = localize(message.substring(index, match.index));
-			localized += section + match[0]!;
-			index = match.index! + match[0]!.length;
-		}
+	const result = pseudoLocalizedTranslate(dataToLocalize);
+	logger.debug(`Pseudo-localized ${Object.keys(result).length} strings.`);
+	return result;
+}
 
-		contents[key] = index === 0
-			? localize(message)
-			: localized + localize(message.substring(index));
+/**
+ * @public
+ * Get pseudo localized l10n data for a given l10n bundle
+ * @param dataToLocalize - package.nls.json or bundle.l10n.json contents parsed
+ * @param languages - languages to translate to
+ * @param config - configuration for the Azure Translator instance
+ * @returns l10nJsonFormat[] where each element is the localized data for that respective language in the languages array
+ */
+export async function getL10nAzureLocalized(dataToLocalize: l10nJsonFormat, languages: string[], config: { azureTranslatorKey: string, azureTranslatorRegion: string }): Promise<l10nJsonFormat[]> {
+	logger.debug('Localizing data using Azure...');
+
+	const result = await azureTranslatorTranslate(dataToLocalize, languages, config);
+	if (result.length) {
+		logger.debug(`Localized ${Object.keys(result[0]!).length * languages.length} strings.`);
+	} else {
+		logger.debug('No strings localized.');
 	}
-
-	logger.debug(`Pseudo-localized ${Object.keys(contents).length} strings.`)
-	return contents;
+	return result;
 }
