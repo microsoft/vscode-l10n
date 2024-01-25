@@ -8,6 +8,78 @@ import TextTranslationClient, { InputTextItem, TranslatedTextItemOutput, ErrorRe
 import { NodeHtmlMarkdown } from 'node-html-markdown';
 import { l10nJsonFormat } from '../common';
 
+let client: TranslationClient | undefined;
+/**
+ * Translates the given body to the given languages using Azure Translator.
+ * @param body The body of the request
+ * @param languages The languages to translate to
+ * @param config The config object
+ * @returns 
+ */
+function translate(body: InputTextItem[], languages: string[], config: { azureTranslatorKey: string, azureTranslatorRegion: string }) {
+	client ??= TextTranslationClient('https://api.cognitive.microsofttranslator.com/', { key: config.azureTranslatorKey, region: config.azureTranslatorRegion });
+	const to = languages.join(',');
+	return client.path("/translate").post({
+		body,
+		queryParameters: {
+			to,
+			// extend this to allow for other languages
+			from: 'en',
+			textType: 'html'
+		}
+	})
+}
+
+/**
+ * Translates the given body to the given languages. Handles batching the requests if the body is too large.
+ * @param body The body of the request
+ * @param languages The languages to translate to
+ * @param config The config object
+ * @returns 
+ */
+async function batchTranslate(body: InputTextItem[], languages: string[], config: { azureTranslatorKey: string, azureTranslatorRegion: string }) {
+	const promises = [];
+
+	const partialBody: InputTextItem[] = [];
+	const characterLimit = 33000;
+	let currentCharacterCount = 0;
+	for (const item of body) {
+		if (currentCharacterCount + item.text.length > characterLimit) {
+			promises.push(translate(partialBody, languages, config));
+			partialBody.length = 0;
+			currentCharacterCount = 0;
+		} else {
+			partialBody.push(item);
+			currentCharacterCount += item.text.length;
+		}
+	}
+	
+	if (partialBody.length > 0) {
+		promises.push(translate(partialBody, languages, config));
+	}
+
+	const responses = await Promise.allSettled(promises);
+	const outputs: TranslatedTextItemOutput[] = [];
+
+	for (const response of responses) {
+		if (response.status === 'fulfilled') {
+			switch (response.value.status) {
+				case "200":
+					outputs.push(...(response.value.body as TranslatedTextItemOutput[]));
+					break;
+				default: {
+					const error = response.value.body as ErrorResponseOutput;
+					throw new Error(`Failed to translate: ${error.error.message}`);
+				}
+			}
+		} else {
+			throw response.reason;
+		}
+	}
+
+	return outputs;
+}
+
 function handleSuccess(outputs: TranslatedTextItemOutput[], keys: string[]) {
 	const files: l10nJsonFormat[] = [];
 	for (let i = 0; i < outputs.length; i++) {
@@ -22,7 +94,6 @@ function handleSuccess(outputs: TranslatedTextItemOutput[], keys: string[]) {
 }
 
 let md: markdownit | undefined;
-let client: TranslationClient | undefined;
 export async function azureTranslatorTranslate(dataToLocalize: l10nJsonFormat, languages: string[], config: { azureTranslatorKey: string, azureTranslatorRegion: string }): Promise<l10nJsonFormat[]> {
 	md ??= markdownit();
 	client ??= TextTranslationClient('https://api.cognitive.microsofttranslator.com/', { key: config.azureTranslatorKey, region: config.azureTranslatorRegion });
@@ -37,21 +108,7 @@ export async function azureTranslatorTranslate(dataToLocalize: l10nJsonFormat, l
 
 		body.push({ text: html });
 	}
-	const translateResponse = await client.path("/translate").post({
-		body,
-		queryParameters: {
-			to: languages.join(','),
-			from: 'en',
-			textType: 'html'
-		}
-	});
-
-	switch (translateResponse.status) {
-		case "200":
-			return handleSuccess(translateResponse.body as TranslatedTextItemOutput[], keys);
-		default: {
-			const error = translateResponse.body as ErrorResponseOutput;
-			throw new Error(`Failed to translate: ${error.error.message}`);
-		}
-	}
+	
+	const result = await batchTranslate(body, languages, config);
+	return handleSuccess(result, keys);
 }

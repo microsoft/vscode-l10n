@@ -140,7 +140,7 @@ yargs(hideBin(process.argv))
 			alias: 'l',
 			type: 'string',
 			array: true,
-			default: ['de', 'fr', 'ja', 'ru', 'zh-cn', 'zh-tw', 'it', 'ko', 'es'],
+			default: ['fr', 'it', 'de', 'es', 'ru', 'zh-cn', 'zh-tw', 'ja', 'ko', 'cs', 'pt-br', 'tr', 'pl'],
 			describe: 'The Pseudo language identifier that will be used.'
 		});
 		yargs.env('AZURE_TRANSLATOR');
