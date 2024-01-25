@@ -73,6 +73,16 @@ npx @vscode/l10n-dev generate-pseudo -o ./l10n/ ./l10n/bundle.l10n.json ./packag
 
 This will create a `package.nls.qps-ploc.json` file and a `bundle.l10n.qps-ploc.json` file. If you install the [Pseudo Language Language Pack](https://marketplace.visualstudio.com/items?itemName=MS-CEINTL.vscode-language-pack-qps-ploc), you'll be able to set VS Code to this locale which will pull strings for this extension out of the respective `qps-ploc` files. The `qps-ploc` is the language code for Pseudolocalization used by VS Code.
 
+##### Azure AI Translator (Experimental)
+
+If you have an Azure subscription, you can use the [Azure AI Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator-text-api/) to generate translations for your extension. Give it a try:
+
+```sh
+npx @vscode/l10n-dev generate-azure -o ./l10n/ ./l10n/bundle.l10n.json ./package.nls.json
+```
+
+This will create a `package.nls.<language>.json` file and a `bundle.l10n.<language>.json` file for each language that VS Code supports (you can choose the languages using the `-l` flag).
+
 #### Advanced usage
 
 ##### Generating an XLIFF file
