@@ -77,6 +77,8 @@ This will create a `package.nls.qps-ploc.json` file and a `bundle.l10n.qps-ploc.
 
 If you have an Azure subscription, you can use the [Azure AI Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator-text-api/) to generate translations for your extension. Give it a try:
 
+First, set the `AZURE_TRANSLATOR_KEY` and `AZURE_TRANSLATOR_REGION` environment variables. You can get these values from the [Azure Portal](https://portal.azure.com/). Then run:
+
 ```sh
 npx @vscode/l10n-dev generate-azure -o ./l10n/ ./l10n/bundle.l10n.json ./package.nls.json
 ```
