@@ -8,6 +8,11 @@ import TextTranslationClient, { InputTextItem, TranslatedTextItemOutput, ErrorRe
 import { NodeHtmlMarkdown } from 'node-html-markdown';
 import { l10nJsonFormat } from '../common';
 
+const MAX_SIZE_OF_ARRAY_ELEMENT = 50000;
+const MAX_NUMBER_OF_ARRAY_ELEMENTS = 1000;
+// This is the request size times the number of languages
+const MAX_REQUEST_SIZE = 50000;
+
 let client: TranslationClient | undefined;
 /**
  * Translates the given body to the given languages using Azure Translator.
@@ -39,19 +44,22 @@ function translate(body: InputTextItem[], languages: string[], config: { azureTr
  */
 async function batchTranslate(body: InputTextItem[], languages: string[], config: { azureTranslatorKey: string, azureTranslatorRegion: string }) {
 	const promises = [];
-
-	const partialBody: InputTextItem[] = [];
-	const characterLimit = 33000;
+	let partialBody: InputTextItem[] = [];
 	let currentCharacterCount = 0;
 	for (const item of body) {
-		if (currentCharacterCount + item.text.length > characterLimit) {
-			promises.push(translate(partialBody, languages, config));
-			partialBody.length = 0;
-			currentCharacterCount = 0;
-		} else {
-			partialBody.push(item);
-			currentCharacterCount += item.text.length;
+		if (item.text.length > MAX_SIZE_OF_ARRAY_ELEMENT) {
+			throw new Error(`Failed to translate. Item is too large: ${item.text}`)
 		}
+		const requestAddition = item.text.length * languages.length;
+		if (currentCharacterCount + requestAddition > MAX_REQUEST_SIZE
+			|| partialBody.length === MAX_NUMBER_OF_ARRAY_ELEMENTS
+		) {
+			promises.push(translate(partialBody, languages, config));
+			partialBody = [];
+			currentCharacterCount = 0;
+		}
+		partialBody.push(item);
+		currentCharacterCount += requestAddition;
 	}
 	
 	if (partialBody.length > 0) {
