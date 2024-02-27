@@ -65,6 +65,7 @@ extends:
         publishPackage: ${{ parameters.publishPackage1 }}
         workingDirectory: $(Build.SourcesDirectory)/l10n-dev
         publishRequiresApproval: false
+        skipAPIScan: true # Requires Linux to build WASM grammars
 
       - name: l10n
 
