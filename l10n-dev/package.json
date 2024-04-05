@@ -52,8 +52,8 @@
 		"yargs": "^17.7.1"
 	},
 	"scripts": {
-		"build-wasm-typescript": "tree-sitter build-wasm ./node_modules/tree-sitter-typescript/typescript && mv ./tree-sitter-typescript.wasm ./src/ast/tree-sitter-typescript.wasm",
-		"build-wasm-tsx": "tree-sitter build-wasm ./node_modules/tree-sitter-typescript/tsx && mv ./tree-sitter-tsx.wasm ./src/ast/tree-sitter-tsx.wasm",
+		"build-wasm-typescript": "tree-sitter build --wasm ./node_modules/tree-sitter-typescript/typescript --output ./src/ast/tree-sitter-typescript.wasm",
+		"build-wasm-tsx": "tree-sitter build --wasm ./node_modules/tree-sitter-typescript/tsx --output ./src/ast/tree-sitter-tsx.wasm",
 		"build-wasm": "npm run build-wasm-typescript && npm run build-wasm-tsx",
 		"clean": "rimraf dist && rimraf lib",
 		"compile": "npm run clean && tsc --emitDeclarationOnly --outDir lib && node .esbuild.config.mjs",

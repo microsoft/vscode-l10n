@@ -18,9 +18,17 @@ jobs:
         with:
           node-version: ${{ matrix.version }}
 
+      - run: |
+          git clone https://github.com/emscripten-core/emsdk.git /tmp/emsdk
+          /tmp/emsdk/emsdk install latest
+          /tmp/emsdk/emsdk activate latest
+        name: Setup emcc
+
       - run: npm ci
 
-      - run: npm run build-wasm
+      - run: |
+          export PATH=$PATH:/tmp/emsdk:/tmp/emsdk/upstream/emscripten
+          npm run build-wasm
         working-directory: l10n-dev
       - uses: actions/upload-artifact@v3
         name: upload tree-sitter-tsx.wasm
