@@ -30,6 +30,7 @@ jobs:
           export PATH=$PATH:/tmp/emsdk:/tmp/emsdk/upstream/emscripten
           npm run build-wasm
         working-directory: l10n-dev
+        name: Compile wasm binaries
       - uses: actions/upload-artifact@v3
         name: upload tree-sitter-tsx.wasm
         with:
