@@ -32,10 +32,26 @@ extends:
       - name: l10n-dev
 
         buildSteps:
+          - script: |
+              # tree-sitter-cli will use docker and setup emcc when emsdk is
+              # not found locally. However, the solution does not work well
+              # with tree-sitter-typescript plugin. The docker solution mounts
+              # `plugin-path/src` as seen in https://github.com/tree-sitter/tree-sitter/blob/c76e5fa96052337fe69047557c2b08a5acc08360/cli/loader/src/lib.rs#L789
+              # in this case would be `node_modules/tree-sitter-typescript/typescript/src`
+              # but the plugin also has sources outside this directory `https://github.com/tree-sitter/tree-sitter-typescript/tree/master/common`
+              # which will lead to compilation failure. Ideally this should be
+              # addressed in the plugin, the following is a workaround to avoid
+              # the docker fallback.
+              git clone https://github.com/emscripten-core/emsdk.git /tmp/emsdk
+              /tmp/emsdk/emsdk install latest
+              /tmp/emsdk/emsdk activate latest
+            displayName: Setup emcc
           - script: npm ci
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
             displayName: Install dependencies
-          - script: npm run build-wasm
+          - script: |
+              export PATH=$PATH:/tmp/emsdk:/tmp/emsdk/upstream/emscripten
+              npm run build-wasm
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
             displayName: Build wasm grammars
           - script: npm run compile
@@ -48,10 +64,17 @@ extends:
               - 18.x
 
         testSteps:
+          - script: |
+              git clone https://github.com/emscripten-core/emsdk.git /tmp/emsdk
+              /tmp/emsdk/emsdk install latest
+              /tmp/emsdk/emsdk activate latest
+            displayName: Setup emcc
           - script: npm ci
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
             displayName: Install dependencies
-          - script: npm run build-wasm
+          - script: |
+              export PATH=$PATH:/tmp/emsdk:/tmp/emsdk/upstream/emscripten
+              npm run build-wasm
             workingDirectory: $(Build.SourcesDirectory)/l10n-dev
             displayName: Build wasm
           - script: npm run compile
