@@ -89,6 +89,18 @@ describe('ScriptAnalyzer', () => {
             expect(result![basecaseText]!).toBe(basecaseText);
         });
 
+        it('import named imports renamed', async () => {
+            const analyzer = new ScriptAnalyzer();
+            const result = await analyzer.analyze({
+                extension: '.ts',
+                contents: `
+                    import { l10n as _ } from 'vscode';
+                    _.t('${basecaseText}');`
+            });
+            expect(Object.keys(result!).length).toBe(1);
+            expect(result![basecaseText]!).toBe(basecaseText);
+        });
+
         it('import newlines named imports', async () => {
             const analyzer = new ScriptAnalyzer();
             const result = await analyzer.analyze({
