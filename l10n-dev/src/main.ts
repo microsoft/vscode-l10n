@@ -8,10 +8,12 @@ import { ScriptAnalyzer } from "./ast/analyzer";
 import { IScriptFile, l10nJsonDetails, l10nJsonFormat } from './common';
 import { logger } from './logger';
 import { XLF } from "./xlf/xlf";
+import { AwsTranslatorConfig, awsTranslatorTranslate } from './translators/aws';
 import { azureTranslatorTranslate } from './translators/azure';
 import { pseudoLocalizedTranslate } from './translators/pseudo';
 
 export { l10nJsonDetails, l10nJsonFormat, l10nJsonMessageFormat, IScriptFile } from './common';
+export { AwsTranslatorConfig }  from './translators/aws';
 
 const analyzer = new ScriptAnalyzer();
 
@@ -140,3 +142,23 @@ export async function getL10nAzureLocalized(dataToLocalize: l10nJsonFormat, lang
 	}
 	return result;
 }
+
+/**
+ * @alpha
+ * Get  localized l10n data for a given l10n bundle
+ * @param dataToLocalize - package.nls.json or bundle.l10n.json contents parsed
+ * @param languages - languages to translate to
+ * @returns l10nJsonFormat[] where each element is the localized data for that respective language in the languages array
+ */
+export async function getL10nAwsLocalized(dataToLocalize: l10nJsonFormat, languages: string[], config: AwsTranslatorConfig): Promise<l10nJsonFormat[]> {
+	logger.debug('Localizing data using AWS...');
+
+	const result = await awsTranslatorTranslate(dataToLocalize, languages, config);
+	if (result.length) {
+		logger.debug(`Localized ${Object.keys(result[0]!).length * languages.length} strings.`);
+	} else {
+		logger.debug('No strings localized.');
+	}
+	return result;
+}
+
