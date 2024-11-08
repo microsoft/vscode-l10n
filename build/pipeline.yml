@@ -12,7 +12,7 @@ resources:
     - repository: templates
       type: github
       name: microsoft/vscode-engineering
-      ref: main
+      ref: lszomoru/npm-sequence
       endpoint: Monaco
 
 parameters:
@@ -91,6 +91,7 @@ extends:
         skipAPIScan: true # Requires Linux to build WASM grammars
 
       - name: l10n
+        dependsOn: l10n-dev
 
         buildSteps:
           - script: npm ci
