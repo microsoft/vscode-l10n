@@ -91,6 +91,7 @@ extends:
         skipAPIScan: true # Requires Linux to build WASM grammars
 
       - name: l10n
+        dependsOn: l10n-dev
 
         buildSteps:
           - script: npm ci
