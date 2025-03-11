@@ -60,6 +60,7 @@
 		"lint": "eslint src --ext ts",
 		"watch": "node .esbuild.config.mjs --watch",
 		"test": "jest --preset ts-jest",
-		"prepublishOnly": "npm run lint && npm run compile && npm run test"
+		"prepublishOnly": "npm run lint && npm run compile && npm run test",
+		"postinstall": "npm run compile"
 	}
 }
