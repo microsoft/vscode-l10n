@@ -1,15 +1,15 @@
 {
-  "name": "@vscode/l10n",
-  "version": "0.0.18",
+  "name": "@mplab/l10n",
+  "version": "0.0.18-",
   "description": "A helper library to assist in localizing subprocesses spun up by VS Code extensions",
   "author": "Microsoft Corporation",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Microsoft/vscode-l10n.git"
+    "url": "https://github.com/MicrochipTech/vscode-l10n.git"
   },
   "bugs": {
-    "url": "https://github.com/Microsoft/vscode-l10n/issues"
+    "url": "https://github.com/MicrochipTech/vscode-l10n/issues"
   },
   "main": "./dist/main.js",
   "sideEffects": false,
