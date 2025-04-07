@@ -1,5 +1,9 @@
 # @vscode/l10n
 
+## Fork
+
+Forked from [microsoft/vscode-l10n](https://github.com/microsoft/vscode-l10n) to integrate translation support with [Amazon Translate](https://aws.amazon.com/translate/).
+
 Library used for loading the translations into subprocesses of your extension. These usages also get picked up by [l10n-dev](https://github.com/microsoft/vscode-l10n/tree/main/l10n-dev) string extraction tooling.
 
 > **Note**
