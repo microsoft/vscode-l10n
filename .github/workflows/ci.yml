@@ -31,12 +31,12 @@ jobs:
           npm run build-wasm
         working-directory: l10n-dev
         name: Compile wasm binaries
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         name: upload tree-sitter-tsx.wasm
         with:
           name: tree-sitter-tsx.wasm
           path: l10n-dev/src/ast/tree-sitter-tsx.wasm
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         name: upload tree-sitter-typescript.wasm
         with:
           name: tree-sitter-typescript.wasm
@@ -58,12 +58,12 @@ jobs:
 
       - run: npm ci
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         name: download tree-sitter-tsx.wasm
         with:
           name: tree-sitter-tsx.wasm
           path: l10n-dev/src/ast
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         name: download tree-sitter-typescript.wasm
         with:
           name: tree-sitter-typescript.wasm
