@@ -1,5 +1,10 @@
 # @vscode/l10n-dev
 
+## Fork
+
+Forked from [microsoft/vscode-l10n](https://github.com/microsoft/vscode-l10n) to integrate translation support with [Amazon Translate](https://aws.amazon.com/translate/).
+
+
 Tooling used for extracting l10n strings from vscode extensions. Supports extracting strings in usages of:
 
 * `vscode.l10n.t(...)` from the [VS Code API](https://code.visualstudio.com/api/references/vscode-api#l10n)
@@ -8,13 +13,17 @@ Tooling used for extracting l10n strings from vscode extensions. Supports extrac
 ## Usage
 
 ### As a CLI
-```
+
+```generic
 npm install -g @vscode/l10n-dev
 ```
+
 or
-```
+
+```generic
 npm install --save-dev @vscode/l10n-dev
 ```
+
 or `yarn` equivalent.
 
 #### Exporting strings
@@ -95,7 +104,7 @@ The VS Code team generates XLIFF (`.xlf`) files that we then give to translators
 
 If you find yourself needing to generate an XLIFF file, you can use the `generate-xlf` command. This command will generate an XLIFF file from the the strings in your `package.nls.json` and your newly extracted strings (`bundle.l10n.json`).
 
-```
+```generic
 npx @vscode/l10n-dev generate-xlf ./package.nls.json ./bundle.l10n.json --outFile vscode-git.xlf
 ```
 
@@ -109,7 +118,7 @@ XLIFF has a wide range of tools out there. As we learn about successful workflow
 
 If you receive your translations from your translators in the form of an XLIFF file, you can use the `import-xlf` command to import the translations into `*.l10n.<language>.json` files.
 
-```
+```generic
 npx @vscode/l10n-dev import-xlf ./translations.xlf
 ```
 
@@ -121,9 +130,10 @@ This command will then place a `bundle.l10n.<language>.json` and a `package.nls.
 
 ### As a library
 
-```
+```generic
 npm install --save-dev @vscode/l10n-dev
 ```
+
 or `yarn` equivalent.
 
 ```typescript

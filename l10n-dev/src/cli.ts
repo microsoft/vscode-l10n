@@ -6,10 +6,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import * as glob from 'glob';
-import { getL10nAzureLocalized, getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf, l10nJsonFormat } from "./main";
+import { getL10nAwsLocalized, getL10nAzureLocalized, getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf, l10nJsonFormat } from "./main";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { logger, LogLevel } from "./logger";
+import { AwsTranslatorConfig } from "./translators/aws";
 
 const GLOB_DEFAULTS = {
 	// We only want files.
@@ -151,11 +152,69 @@ yargs(hideBin(process.argv))
 		if (!argv.region) {
 			throw new Error('AZURE_TRANSLATOR_REGION environment variable is not defined.');
 		}
-		await l10nGenerateTranslationService(
+		await azureL10nGenerateTranslationService(
 			argv.path as string[],
 			argv.languages as string[],
 			argv.key as string,
 			argv.region as string
+		);
+	})
+.command(
+	'generate-aws [args] <path..>',
+	'(Experimental) Generate language files for `*.l10n.json` or `package.nls.json` files.',
+	yargs => {
+		yargs.positional('path', {
+			demandOption: true,
+			type: 'string',
+			array: true,
+			normalize: true,
+			describe: 'L10N JSON files to translate from. Supports folders and glob patterns.'
+		});
+		yargs.option('languages', {
+			alias: 'l',
+			type: 'string',
+			array: true,
+			default: ['fr', 'it', 'de', 'es', 'ru', 'zh-cn', 'zh-tw', 'ja', 'ko', 'cs', 'pt-br', 'tr', 'pl'],
+			describe: 'The language identifier that will be used.'
+		});
+		yargs.option('region', {
+			type: 'string',
+			default: 'us-west-2',
+			describe: 'The AWS region to use.'
+		});
+		yargs.option('source-language', {
+			alias: 's',
+			type: 'string',
+			default: 'en',
+			describe: 'The language of the source.'
+		});
+		yargs.option('sso-profile', {
+			type: 'string',
+			default: '',
+			describe: 'The SSO profile name.'
+		});
+		yargs.option('formality', {
+			type: 'string',
+			choices: ['FORMAL', 'INFORMAL'],
+			default: 'FORMAL',
+			describe: 'The formality of the translation.'
+		});
+		yargs.option('profanity', {
+			type: 'boolean',
+			default: true,
+			describe: 'Mask profanities.'
+		});
+	}, async function (argv) {
+		await awsL10nGenerateTranslationService(
+			argv.path as string[],
+			argv.languages as string[],
+			{
+				region: argv.region as string,
+				sourceLanguage: argv['source-language'] as string,
+				formality: argv.formality as 'FORMAL' | 'INFORMAL',
+				profanity: argv.profanity as boolean ? "MASK" : undefined,
+				profile: argv['sso-profile'] as string
+			}
 		);
 	})
 .help().argv;
@@ -308,13 +367,10 @@ export function l10nGeneratePseudo(paths: string[], language: string): void {
 	logger.log(`Wrote ${matches.length} L10N JSON files.`);
 }
 
-export async function l10nGenerateTranslationService(paths: string[], languages: string[], key: string, region: string): Promise<void> {
+export async function azureL10nGenerateTranslationService(paths: string[], languages: string[], key: string, region: string): Promise<void> {
 	logger.log('Searching for L10N JSON files...');
 
-	const matches = glob.sync(
-		paths.map(p => /(\.l10n\.json|package\.nls\.json)$/.test(p) ? p : path.posix.join(p, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}')),
-		GLOB_DEFAULTS
-	);
+	const matches = findL10nFiles(paths)
 
 	for (const match of matches) {
 		const contents = await getL10nAzureLocalized(
@@ -322,21 +378,7 @@ export async function l10nGenerateTranslationService(paths: string[], languages:
 			languages,
 			{ azureTranslatorKey: key, azureTranslatorRegion: region }
 		);
-		for (let i = 0; i < languages.length; i++) {
-			const language = languages[i];
-			if (match.endsWith('.l10n.json')) {
-				const name = path.basename(match).split('.l10n.json')[0] ?? '';
-				writeFileSync(
-					path.resolve(path.join(path.dirname(match), `${name}.l10n.${language}.json`)),
-					JSON.stringify(contents[i], undefined, 2)
-				);
-			} else if (path.basename(match) === 'package.nls.json') {
-				writeFileSync(
-					path.resolve(path.join(path.dirname(match), `package.nls.${language}.json`)),
-					JSON.stringify(contents[i], undefined, 2)
-				);
-			}
-		}
+		writeTranslations(languages, match, contents);
 	}
 
 	if (!matches.length) {
@@ -345,3 +387,50 @@ export async function l10nGenerateTranslationService(paths: string[], languages:
 	}
 	logger.log(`Wrote ${matches.length * languages.length} L10N JSON files.`);
 }
+
+export async function awsL10nGenerateTranslationService(paths: string[], languages: string[], config: AwsTranslatorConfig ): Promise<void> {
+	logger.log('Searching for L10N JSON files...');
+
+	const matches = findL10nFiles(paths)
+
+	for (const match of matches) {
+		const contents = await getL10nAwsLocalized(
+			JSON.parse(readFileSync(path.resolve(match), 'utf8')),
+			languages,
+			config
+		);
+		writeTranslations(languages, match, contents);
+	}
+
+	if (!matches.length) {
+		logger.log('No L10N JSON files.');
+		return;
+	}
+	logger.log(`Wrote ${matches.length * languages.length} L10N JSON files.`);
+}
+
+function findL10nFiles(paths: string[]): string[] {
+	return glob.sync(
+		paths.map(p => /(\.l10n\.json|package\.nls\.json)$/.test(p) ? p : path.posix.join(p, `{,!(node_modules)/**}`, '{*.l10n.json,package.nls.json}')),
+		GLOB_DEFAULTS
+	);
+}
+
+function writeTranslations(languages: string[], match: string, contents: l10nJsonFormat[]) {
+	for (let i = 0; i < languages.length; i++) {
+		const language = languages[i];
+		if (match.endsWith('.l10n.json')) {
+			const name = path.basename(match).split('.l10n.json')[0] ?? '';
+			writeFileSync(
+				path.resolve(path.join(path.dirname(match), `${name}.l10n.${language}.json`)),
+				JSON.stringify(contents[i], undefined, 2)
+			);
+		} else if (path.basename(match) === 'package.nls.json') {
+			writeFileSync(
+				path.resolve(path.join(path.dirname(match), `package.nls.${language}.json`)),
+				JSON.stringify(contents[i], undefined, 2)
+			);
+		}
+	}
+}
+
