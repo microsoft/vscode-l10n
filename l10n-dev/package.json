@@ -36,7 +36,7 @@
 		"mock-fs": "^5.1.4",
 		"rimraf": "^3.0.2",
 		"tree-sitter-cli": "^0.22.2",
-		"tree-sitter-typescript": "^0.20.1",
+		"tree-sitter-typescript": "^0.23.2",
 		"ts-jest": "^29.1.1"
 	},
 	"dependencies": {
