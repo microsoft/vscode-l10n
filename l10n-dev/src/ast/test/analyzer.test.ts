@@ -193,9 +193,7 @@ describe('ScriptAnalyzer', () => {
     });
 
     describe('usage of l10n.t tagged template', () => {
-        // Skipping for now until https://github.com/tree-sitter/tree-sitter-typescript/issues/339 is
-        // resolved.
-        it.skip('args are object with comment as string', async () => {
+        it('args are object with comment as string', async () => {
             const analyzer = new ScriptAnalyzer();
             const key = `hello {0} and {1}!`;
             const result = await analyzer.analyze({

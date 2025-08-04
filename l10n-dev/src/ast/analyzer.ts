@@ -189,7 +189,10 @@ export class ScriptAnalyzer {
 				let message: string;
 				// handles l10n.t`foo`
 				if (taggedTemplate) {
-					const subs = match.captures.filter(c => c.name === 'sub');
+					const subs = match.captures
+						.filter(c => c.name === 'sub')
+						// Workaround for https://github.com/tree-sitter/tree-sitter-typescript/issues/339
+						.filter(c => c.node.type === 'template_substitution');
 					const start = taggedTemplate.node.startIndex;
 					message = this.#getTemplateValueFromTemplateRawValue(taggedTemplate.node.text);
 					for (let i = subs.length - 1; i >= 0; i--) {

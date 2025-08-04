@@ -62,6 +62,8 @@ ${assignmentExpressionRequireQuery}
 ${importQuery}`;
 
 // Gets a query that will find and extract all t() calls into @message and @comment
+// NOTE: the `(_)*` in the template string query is a workaround for
+// https://github.com/tree-sitter/tree-sitter-typescript/issues/339
 export function getTQuery({ vscode = 'vscode', l10n = 'l10n', t = 't' }: IAlternativeVariableNames): string {
 	return `(call_expression
 		(member_expression
@@ -75,7 +77,7 @@ export function getTQuery({ vscode = 'vscode', l10n = 'l10n', t = 't' }: IAltern
 			property: (property_identifier) @t (#eq? @t ${t})
 		)
 		arguments: [
-			(template_string (template_substitution)* @sub) @tagged_template
+			(template_string (_)* @sub) @tagged_template
 			(arguments . [(string) (template_string (template_substitution)? @message_template_arg)] @message)
 			(arguments . (number) @message)
 			(arguments . (object
