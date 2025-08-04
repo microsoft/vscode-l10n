@@ -10,7 +10,7 @@ jobs:
   ci-ubuntu:
     strategy:
       matrix:
-        version: [18]
+        version: [22]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -48,7 +48,7 @@ jobs:
     needs: ci-ubuntu
     strategy:
       matrix:
-        version: [18]
+        version: [22]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
