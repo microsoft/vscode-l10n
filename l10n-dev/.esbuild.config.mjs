@@ -18,49 +18,55 @@ const type = watch ? 'watch' : 'compile';
 
 const sharedConfig = {
 	bundle: true,
-	watch: !watch ? false : {
-		onRebuild(error, result) {
-			console.log(`[${type}] build started`)
-			if (error) {
-				error.errors.forEach((error) => console.error(`> ${error.location.file}:${error.location.line}:${error.location.column}: error: ${error.text}`))
-			} else {
-				console.log(`[${type}] build finished`)
-			}
-		},
-	},
 	sourcemap: watch,
 	platform: 'node',
 	minify: false,
 	external: Object.keys(dependencies ?? {}).concat(Object.keys(peerDependencies ?? {})),
+	plugins: [{
+		name: 'rebuild-notify',
+		setup(build) {
+			build.onEnd(result => {
+				console.log(`[${type}] build started`);
+				console.log(JSON.stringify(result));
+				if (result.errors.length > 0) {
+					result.errors.forEach((error) => console.error(`> ${error.location.file}:${error.location.line}:${error.location.column}: error: ${error.text}`));
+				}
+				console.log(`[${type}] build finished`);
+			})
+		},
+	}]
 };
 
 console.log(`[${type}] build started`);
 
 Promise.all([
-	esbuild.build({
+	esbuild.context({
 		...sharedConfig,
 		entryPoints: ['src/main.ts'],
 		outfile: 'dist/main.js',
-		plugins: [
+		plugins: sharedConfig.plugins.concat([
 			copy({
 				source: ['./src/ast/tree-sitter-tsx.wasm', './src/ast/tree-sitter-typescript.wasm'],
 				target: './dist',
 				copyWithFolder: false
 			})
-		]
+		])
 	}),
-	esbuild.build({
+	esbuild.context({
 		...sharedConfig,
 		entryPoints: ['src/cli.ts'],
 		outfile: 'dist/cli.js',
 		banner: { js: '#!/usr/bin/env node' }, 
 	})
 ])
-.then(() => {
+.then(([apiResult, cliResult]) => {
 	console.log(`[${type}] build finished`);
 	// no need to generate types for watch mode
 	if (watch) {
-		return;
+		return Promise.all([
+			apiResult.watch(),
+			cliResult.watch()
+		]);
 	}
 
 	console.log(`[${type}] generating types started`);
