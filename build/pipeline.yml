@@ -61,7 +61,7 @@ extends:
         testPlatforms:
           - name: Linux
             nodeVersions:
-              - 18.x
+              - 22.x
 
         testSteps:
           - script: |
@@ -104,10 +104,10 @@ extends:
         testPlatforms:
           - name: Linux
             nodeVersions:
-              - 18.x
+              - 22.x
           - name: Windows
             nodeVersions:
-              - 18.x
+              - 22.x
 
         testSteps:
           - script: npm ci

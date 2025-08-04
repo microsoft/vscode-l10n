@@ -10,26 +10,28 @@ const sharedConfig = {
 	bundle: true,
 	minify: false,
 	sourcemap: watch,
-	watch: !watch ? false : {
-		onRebuild(error, result) {
-			console.log(`[${type}] build started`)
-			if (error) {
-				error.errors.forEach((error) => console.error(`> ${error.location.file}:${error.location.line}:${error.location.column}: error: ${error.text}`))
-			} else {
-				console.log(`[${type}] build finished`)
-			}
+	plugins: [{
+		name: 'rebuild-notify',
+		setup(build) {
+			build.onEnd(result => {
+				console.log(`[${type}] build started`);
+				if (result.errors.length > 0) {
+					result.errors.forEach((error) => console.error(`> ${error.location.file}:${error.location.line}:${error.location.column}: error: ${error.text}`));
+				}
+				console.log(`[${type}] build finished`);
+			})
 		},
-	},
+	}]
 }
 
 console.log(`[${type}] build started`);
 Promise.all([
-	esbuild.build({
+	esbuild.context({
 		...sharedConfig,
 		platform: 'node',
-		outfile: 'dist/main.js',
+		outfile: 'dist/main.js'
 	}),
-	esbuild.build({
+	esbuild.context({
 		...sharedConfig,
 		format: 'esm',
 		globalName: 'l10n',
@@ -37,11 +39,14 @@ Promise.all([
 		outfile: 'dist/browser.js',
 	})
 ])
-.then(() => {
+.then(([nodeResult, browserResult]) => {
 	console.log(`[${type}] build finished`);
 	
 	if (watch) {
-		return;
+		return Promise.all([
+			nodeResult.watch(),
+			browserResult.watch()
+		]);
 	}
 	
 	console.log(`[${type}] generating types started`);
