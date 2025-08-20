@@ -39,7 +39,7 @@ Promise.all([
 		outfile: 'dist/browser.js',
 	})
 ])
-.then(([nodeResult, browserResult]) => {
+.then(async ([nodeResult, browserResult]) => {
 	console.log(`[${type}] build finished`);
 	
 	if (watch) {
@@ -57,6 +57,11 @@ Promise.all([
 		process.exit(1);
 	}
 	console.log(`[${type}] generating types finished`);
+
+	await Promise.all([
+		nodeResult.dispose(),
+		browserResult.dispose()
+	]);
 })
 .catch((err) => {
 	console.error(err);

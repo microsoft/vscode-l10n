@@ -59,7 +59,7 @@ Promise.all([
 		banner: { js: '#!/usr/bin/env node' }, 
 	})
 ])
-.then(([apiResult, cliResult]) => {
+.then(async ([apiResult, cliResult]) => {
 	console.log(`[${type}] build finished`);
 	// no need to generate types for watch mode
 	if (watch) {
@@ -77,6 +77,11 @@ Promise.all([
 		process.exit(1);
 	}
 	console.log(`[${type}] generating types finished`);
+
+	await Promise.all([
+		apiResult.dispose(),
+		cliResult.dispose()
+	]);
 })
 .catch((err) => {
 	console.log(err);
