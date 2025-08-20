@@ -30,6 +30,7 @@ extends:
   parameters:
     npmPackages:
       - name: l10n-dev
+        timeoutInMinutes: 90
 
         buildSteps:
           - script: |
