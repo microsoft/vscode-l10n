@@ -59,8 +59,8 @@ Promise.all([
 	console.log(`[${type}] generating types finished`);
 
 	await Promise.all([
-		apiResult.dispose(),
-		cliResult.dispose()
+		nodeResult.dispose(),
+		browserResult.dispose()
 	]);
 })
 .catch((err) => {
