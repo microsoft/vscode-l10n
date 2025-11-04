@@ -6,7 +6,7 @@
 import * as xml2js from 'xml2js';
 import * as crypto from 'crypto';
 import { Line } from "./line";
-import { l10nJsonDetails, l10nJsonFormat, l10nJsonMessageFormat } from "../common";
+import { l10nJsonDetails, l10nJsonFormat, l10nJsonMessageFormat, normalizeMessage } from "../common";
 
 const hashedIdSignal = '++CODE++';
 const hashedIdLength = 72; // 64 because it was a SHA256 hash + hashedIdSignal.length
@@ -18,10 +18,13 @@ interface Item {
 }
 
 function getMessage(value: l10nJsonMessageFormat): string {
-	return typeof value === 'string' ? value : value.message;
+	return normalizeMessage(value);
 }
 function getComment(value: l10nJsonMessageFormat): string[] | undefined {
-	return typeof value === 'string' ? undefined : value.comment;
+	if (typeof value === 'string' || Array.isArray(value)) {
+		return undefined;
+	}
+	return value.comment;
 }
 
 function getValue(node: any): string | undefined {
