@@ -6,7 +6,7 @@
 import markdownit from 'markdown-it';
 import TextTranslationClient, { InputTextItem, TranslatedTextItemOutput, ErrorResponseOutput, TextTranslationClient as TranslationClient } from "@azure-rest/ai-translation-text";
 import { NodeHtmlMarkdown } from 'node-html-markdown';
-import { l10nJsonFormat } from '../common';
+import { l10nJsonFormat, normalizeMessage } from '../common';
 
 const MAX_SIZE_OF_ARRAY_ELEMENT = 50000;
 const MAX_NUMBER_OF_ARRAY_ELEMENTS = 1000;
@@ -110,7 +110,10 @@ export async function azureTranslatorTranslate(dataToLocalize: l10nJsonFormat, l
 	const keys = Object.keys(dataToLocalize);
 	for (const key of keys) {
 		const value = dataToLocalize[key];
-		const message = typeof value === 'string' ? value : value!.message;
+		if (value === undefined) {
+			continue;
+		}
+		const message = normalizeMessage(value);
 		// Render markdown to HTML since Azure Translator supports HTML and not markdown
 		const html = md.render(message);
 
