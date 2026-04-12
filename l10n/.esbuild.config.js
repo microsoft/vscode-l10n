@@ -19,35 +19,43 @@ const sharedConfig = {
 					result.errors.forEach((error) => console.error(`> ${error.location.file}:${error.location.line}:${error.location.column}: error: ${error.text}`));
 				}
 				console.log(`[${type}] build finished`);
-			})
+			});
 		},
 	}]
-}
+};
 
-console.log(`[${type}] build started`);
-Promise.all([
-	esbuild.context({
+// Emit CommonJS and ESM entry points for Node consumers and keep a browser-focused bundle.
+const buildTargets = [
+	{
 		...sharedConfig,
+		format: 'cjs',
 		platform: 'node',
 		outfile: 'dist/main.js'
-	}),
-	esbuild.context({
+	},
+	{
 		...sharedConfig,
 		format: 'esm',
-		globalName: 'l10n',
+		platform: 'node',
+		outfile: 'dist/main.mjs'
+	},
+	{
+		...sharedConfig,
+		format: 'esm',
 		platform: 'browser',
-		outfile: 'dist/browser.js',
-	})
-])
-.then(async ([nodeResult, browserResult]) => {
-	console.log(`[${type}] build finished`);
-	
-	if (watch) {
-		return Promise.all([
-			nodeResult.watch(),
-			browserResult.watch()
-		]);
+		outfile: 'dist/browser.js'
 	}
+];
+
+async function main() {
+	console.log(`[${type}] build started`);
+
+	if (watch) {
+		const buildContexts = await Promise.all(buildTargets.map((target) => esbuild.context(target)));
+		await Promise.all(buildContexts.map((context) => context.watch()));
+		return;
+	}
+
+	await Promise.all(buildTargets.map((target) => esbuild.build(target)));
 	
 	console.log(`[${type}] generating types started`);
 	const extractorResult = Extractor.invoke(ExtractorConfig.loadFileAndPrepare(path.join(__dirname, './api-extractor.json')));
@@ -57,13 +65,9 @@ Promise.all([
 		process.exit(1);
 	}
 	console.log(`[${type}] generating types finished`);
+}
 
-	await Promise.all([
-		nodeResult.dispose(),
-		browserResult.dispose()
-	]);
-})
-.catch((err) => {
+main().catch((err) => {
 	console.error(err);
 	process.exit(1);
 });
