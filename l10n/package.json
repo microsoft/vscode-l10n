@@ -12,12 +12,23 @@
     "url": "https://github.com/Microsoft/vscode-l10n/issues"
   },
   "main": "./dist/main.js",
+  "module": "./dist/main.mjs",
+  "types": "./dist/main.d.ts",
   "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "browser": "./dist/browser.js",
+      "import": "./dist/main.mjs",
+      "require": "./dist/main.js",
+      "default": "./dist/main.js"
+    }
+  },
   "browser": {
     "./dist/main.js": "./dist/browser.js",
+    "./dist/main.mjs": "./dist/browser.js",
     "./src/node/reader": "./src/browser/reader"
   },
-  "types": "dist/main.d.ts",
   "files": [
     "dist/*"
   ],

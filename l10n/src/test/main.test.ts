@@ -3,8 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { execFileSync } from 'child_process';
 import { describe, beforeEach, afterEach, expect, it, jest } from '@jest/globals';
+import { mkdtempSync, readFileSync, rmSync } from 'fs';
 import mock from "mock-fs";
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { platform } from "process";
 import fetchMock from 'jest-fetch-mock';
 
@@ -187,6 +191,54 @@ describe('@vscode/l10n', () => {
         const b = 'bar';
         expect(l10n.t`original ${a} message ${b}`).toBe("translated foo message bar");
     });
+
+    it('declares dual-publish entrypoints', () => {
+        const packageJson = JSON.parse(readFileSync(join(__dirname, '../../package.json'), 'utf8'));
+
+        expect(packageJson.exports?.['.']).toMatchObject({
+            types: './dist/main.d.ts',
+            browser: './dist/browser.js',
+            import: './dist/main.mjs',
+            require: './dist/main.js',
+            default: './dist/main.js'
+        });
+    });
+
+    it('loads the packed module with both require and import', () => {
+        const packageRoot = join(__dirname, '../..');
+        const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+        const tempDir = mkdtempSync(join(tmpdir(), 'vscode-l10n-pack-'));
+        let tarball: string | undefined;
+
+        try {
+            // Build and install the real packed artifact into an isolated temp project.
+            execFileSync(npmCommand, ['run', 'compile'], { cwd: packageRoot, stdio: 'pipe' });
+            tarball = execFileSync(npmCommand, ['pack', '--silent'], {
+                cwd: packageRoot,
+                encoding: 'utf8'
+            }).trim().split(/\r?\n/).pop();
+
+            execFileSync(npmCommand, ['init', '-y'], { cwd: tempDir, stdio: 'ignore' });
+            execFileSync(npmCommand, ['install', join(packageRoot, tarball!)], { cwd: tempDir, stdio: 'pipe' });
+
+            const cjsOutput = execFileSync(process.execPath, ['-e', "const l10n=require('@vscode/l10n'); console.log(typeof l10n.t, typeof l10n.config)"], {
+                cwd: tempDir,
+                encoding: 'utf8'
+            }).trim();
+            const esmOutput = execFileSync(process.execPath, ['--input-type=module', '-e', "import * as l10n from '@vscode/l10n'; console.log(typeof l10n.t, typeof l10n.config)"], {
+                cwd: tempDir,
+                encoding: 'utf8'
+            }).trim();
+
+            expect(cjsOutput).toBe('function function');
+            expect(esmOutput).toBe('function function');
+        } finally {
+            if (tarball) {
+                rmSync(join(packageRoot, tarball), { force: true });
+            }
+            rmSync(tempDir, { recursive: true, force: true });
+        }
+    }, 30000);
 
     //#region error cases
 
