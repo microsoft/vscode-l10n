@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { execFileSync, spawnSync } from 'child_process';
+import { execFileSync, execSync } from 'child_process';
 import { describe, beforeEach, afterEach, expect, it, jest } from '@jest/globals';
 import { mkdtempSync, readFileSync, rmSync } from 'fs';
 import mock from "mock-fs";
@@ -206,21 +206,17 @@ describe('@vscode/l10n', () => {
 
     it('loads the packed module with both require and import', () => {
         const packageRoot = join(__dirname, '../..');
-        const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
         const tempDir = mkdtempSync(join(tmpdir(), 'vscode-l10n-pack-'));
         let tarball: string | undefined;
 
-        // Use spawnSync for npm commands to avoid circular-reference errors in the
-        // Error thrown by execFileSync when the spawn itself fails on Windows.
+        // execSync runs through the system shell (cmd.exe on Windows, /bin/sh elsewhere),
+        // so npm is resolved correctly on all platforms via PATHEXT without needing the
+        // explicit "npm.cmd" form.  Because the shell itself is always present there is
+        // no spawn-level ENOENT; Node's checkExecSyncError therefore never creates the
+        // circular err.error===err reference that crashed Jest's IPC serialization.
         const runNpm = (args: string[], cwd: string, stdio: 'pipe' | 'ignore' = 'pipe'): string => {
-            const result = spawnSync(npmCommand, args, { cwd, encoding: 'utf8', stdio });
-            if (result.error) {
-                throw new Error(`npm ${args.join(' ')}: ${result.error.message}`);
-            }
-            if (result.status !== 0) {
-                throw new Error(`npm ${args.join(' ')} exited with ${result.status ?? 'null'}\n${result.stderr ?? ''}`);
-            }
-            return result.stdout ?? '';
+            // All callers pass controlled literal constants with no shell metacharacters.
+            return execSync(['npm', ...args].join(' '), { cwd, encoding: 'utf8', stdio });
         };
 
         try {
