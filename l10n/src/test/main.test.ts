@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { execFileSync } from 'child_process';
+import { execFileSync, spawnSync } from 'child_process';
 import { describe, beforeEach, afterEach, expect, it, jest } from '@jest/globals';
 import { mkdtempSync, readFileSync, rmSync } from 'fs';
 import mock from "mock-fs";
@@ -210,16 +210,26 @@ describe('@vscode/l10n', () => {
         const tempDir = mkdtempSync(join(tmpdir(), 'vscode-l10n-pack-'));
         let tarball: string | undefined;
 
+        // Use spawnSync for npm commands to avoid circular-reference errors in the
+        // Error thrown by execFileSync when the spawn itself fails on Windows.
+        const runNpm = (args: string[], cwd: string, stdio: 'pipe' | 'ignore' = 'pipe'): string => {
+            const result = spawnSync(npmCommand, args, { cwd, encoding: 'utf8', stdio });
+            if (result.error) {
+                throw new Error(`npm ${args.join(' ')}: ${result.error.message}`);
+            }
+            if (result.status !== 0) {
+                throw new Error(`npm ${args.join(' ')} exited with ${result.status ?? 'null'}\n${result.stderr ?? ''}`);
+            }
+            return result.stdout ?? '';
+        };
+
         try {
             // Build and install the real packed artifact into an isolated temp project.
-            execFileSync(npmCommand, ['run', 'compile'], { cwd: packageRoot, stdio: 'pipe' });
-            tarball = execFileSync(npmCommand, ['pack', '--silent'], {
-                cwd: packageRoot,
-                encoding: 'utf8'
-            }).trim().split(/\r?\n/).pop();
+            runNpm(['run', 'compile'], packageRoot);
+            tarball = runNpm(['pack', '--silent'], packageRoot).trim().split(/\r?\n/).pop();
 
-            execFileSync(npmCommand, ['init', '-y'], { cwd: tempDir, stdio: 'ignore' });
-            execFileSync(npmCommand, ['install', join(packageRoot, tarball!)], { cwd: tempDir, stdio: 'pipe' });
+            runNpm(['init', '-y'], tempDir, 'ignore');
+            runNpm(['install', join(packageRoot, tarball!)], tempDir);
 
             const cjsOutput = execFileSync(process.execPath, ['-e', "const l10n=require('@vscode/l10n'); console.log(typeof l10n.t, typeof l10n.config)"], {
                 cwd: tempDir,
