@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { execFileSync } from 'child_process';
+import { execFileSync, execSync } from 'child_process';
 import { describe, beforeEach, afterEach, expect, it, jest } from '@jest/globals';
 import { mkdtempSync, readFileSync, rmSync } from 'fs';
 import mock from "mock-fs";
@@ -206,20 +206,26 @@ describe('@vscode/l10n', () => {
 
     it('loads the packed module with both require and import', () => {
         const packageRoot = join(__dirname, '../..');
-        const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
         const tempDir = mkdtempSync(join(tmpdir(), 'vscode-l10n-pack-'));
         let tarball: string | undefined;
 
+        // execSync runs through the system shell (cmd.exe on Windows, /bin/sh elsewhere),
+        // so npm is resolved correctly on all platforms via PATHEXT without needing the
+        // explicit "npm.cmd" form.  Because the shell itself is always present there is
+        // no spawn-level ENOENT; Node's checkExecSyncError therefore never creates the
+        // circular err.error===err reference that crashed Jest's IPC serialization.
+        const runNpm = (args: string[], cwd: string, stdio: 'pipe' | 'ignore' = 'pipe'): string => {
+            // All callers pass controlled literal constants with no shell metacharacters.
+            return execSync(['npm', ...args].join(' '), { cwd, encoding: 'utf8', stdio });
+        };
+
         try {
             // Build and install the real packed artifact into an isolated temp project.
-            execFileSync(npmCommand, ['run', 'compile'], { cwd: packageRoot, stdio: 'pipe' });
-            tarball = execFileSync(npmCommand, ['pack', '--silent'], {
-                cwd: packageRoot,
-                encoding: 'utf8'
-            }).trim().split(/\r?\n/).pop();
+            runNpm(['run', 'compile'], packageRoot);
+            tarball = runNpm(['pack', '--silent'], packageRoot).trim().split(/\r?\n/).pop();
 
-            execFileSync(npmCommand, ['init', '-y'], { cwd: tempDir, stdio: 'ignore' });
-            execFileSync(npmCommand, ['install', join(packageRoot, tarball!)], { cwd: tempDir, stdio: 'pipe' });
+            runNpm(['init', '-y'], tempDir, 'ignore');
+            runNpm(['install', join(packageRoot, tarball!)], tempDir);
 
             const cjsOutput = execFileSync(process.execPath, ['-e', "const l10n=require('@vscode/l10n'); console.log(typeof l10n.t, typeof l10n.config)"], {
                 cwd: tempDir,
