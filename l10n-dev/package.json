@@ -43,7 +43,7 @@
 		"@azure-rest/ai-translation-text": "^1.0.0-beta.1",
 		"debug": "^4.3.4",
 		"deepmerge-json": "^1.5.0",
-		"glob": "^10.0.0",
+		"glob": "^13.0.6",
 		"markdown-it": "^14.0.0",
 		"node-html-markdown": "^1.3.0",
 		"pseudo-localization": "^2.4.0",
