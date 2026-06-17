@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from "pseudo-localization";
-import { l10nJsonFormat } from "../common";
+import { l10nJsonFormat, normalizeMessage } from "../common";
 
 export function pseudoLocalizedTranslate(dataToLocalize: l10nJsonFormat): l10nJsonFormat {
 	// deep clone
 	const contents = JSON.parse(JSON.stringify(dataToLocalize));
 	for (const key of Object.keys(contents)) {
 		const value = contents[key];
-		const message = typeof value === 'string' ? value : value!.message;
+		const message = normalizeMessage(value);
 		let index = 0;
 		let localized = '';
 		// escape command and icon syntax

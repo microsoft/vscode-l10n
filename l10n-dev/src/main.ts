@@ -11,7 +11,7 @@ import { XLF } from "./xlf/xlf";
 import { azureTranslatorTranslate } from './translators/azure';
 import { pseudoLocalizedTranslate } from './translators/pseudo';
 
-export { l10nJsonDetails, l10nJsonFormat, l10nJsonMessageFormat, IScriptFile } from './common';
+export { l10nJsonDetails, l10nJsonFormat, l10nJsonMessageFormat, IScriptFile, normalizeMessage, normalizeL10nJsonFormat } from './common';
 
 const analyzer = new ScriptAnalyzer();
 
@@ -46,7 +46,7 @@ export async function getL10nJson(fileContents: IScriptFile[]): Promise<l10nJson
 		for (const [key, value] of Object.entries(result)) {
 			if (seenKeys.has(key)) {
 				logger.verbose(`The string '${key}' without comments has been seen multiple times.`);
-			} else if (typeof value === 'string' || !value.comment.length) {
+			} else if (typeof value === 'string' || Array.isArray(value) || !value.comment.length) {
 				seenKeys.add(key);
 			}
 		}
