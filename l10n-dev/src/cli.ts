@@ -6,7 +6,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import * as glob from 'glob';
-import { getL10nAzureLocalized, getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf, l10nJsonFormat } from "./main";
+import { getL10nAzureLocalized, getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf, l10nJsonFormat, normalizeL10nJsonFormat } from "./main";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { logger, LogLevel } from "./logger";
@@ -226,9 +226,11 @@ export function l10nGenerateXlf(paths: string[], language: string, outFile: stri
 	for (const match of matches) {
 		if (match.endsWith('.l10n.json')) {
 			const name = path.basename(match).split('.l10n.json')[0] ?? '';
-			l10nFileContents.set(name, JSON.parse(readFileSync(path.resolve(match), 'utf8')));
+			const rawContent = JSON.parse(readFileSync(path.resolve(match), 'utf8'));
+			l10nFileContents.set(name, normalizeL10nJsonFormat(rawContent));
 		} else if (match.endsWith('package.nls.json')) {
-			l10nFileContents.set('package', JSON.parse(readFileSync(path.resolve(match), 'utf8')));
+			const rawContent = JSON.parse(readFileSync(path.resolve(match), 'utf8'));
+			l10nFileContents.set('package', normalizeL10nJsonFormat(rawContent));
 		}
 	}
 
@@ -286,7 +288,8 @@ export function l10nGeneratePseudo(paths: string[], language: string): void {
 	);
 
 	for (const match of matches) {
-		const contents = getL10nPseudoLocalized(JSON.parse(readFileSync(path.resolve(match), 'utf8')));
+		const rawContent = JSON.parse(readFileSync(path.resolve(match), 'utf8'));
+		const contents = getL10nPseudoLocalized(normalizeL10nJsonFormat(rawContent));
 		if (match.endsWith('.l10n.json')) {
 			const name = path.basename(match).split('.l10n.json')[0] ?? '';
 			writeFileSync(
@@ -317,8 +320,9 @@ export async function l10nGenerateTranslationService(paths: string[], languages:
 	);
 
 	for (const match of matches) {
+		const rawContent = JSON.parse(readFileSync(path.resolve(match), 'utf8'));
 		const contents = await getL10nAzureLocalized(
-			JSON.parse(readFileSync(path.resolve(match), 'utf8')),
+			normalizeL10nJsonFormat(rawContent),
 			languages,
 			{ azureTranslatorKey: key, azureTranslatorRegion: region }
 		);

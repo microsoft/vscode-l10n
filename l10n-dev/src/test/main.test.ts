@@ -161,5 +161,21 @@ describe('main', () => {
 			const result = getL10nPseudoLocalized(l10nContents);
 			expect(JSON.stringify(result)).toBe('{"Hello":"Ħḗḗŀŀǿǿ","$(alert) Hello":"$(alert) Ħḗḗŀŀǿǿ","[hello](command:hello)":"[ħḗḗŀŀǿǿ](command:hello)","{Hello {this}}":"{Ħḗḗŀŀǿǿ {this}}","Hello/Hello":"Ħḗḗŀŀǿǿ"}');
 		});
+
+		it('works with array strings', () => {
+			const l10nContents = {
+				// array case
+				Multiline: ['Line 1', 'Line 2', 'Line 3'],
+				// single array case
+				Single: ['Single line'],
+				// empty array case
+				Empty: []
+			};
+
+			const result = getL10nPseudoLocalized(l10nContents);
+			expect(result.Multiline).toBe('Ĺḯṅḗ 1\nĹḯṅḗ 2\nĹḯṅḗ 3');
+			expect(result.Single).toBe('Šḯṅḡŀḗ ŀḯṅḗ');
+			expect(result.Empty).toBe('');
+		});
 	});
 });
