@@ -160,6 +160,26 @@ yargs(hideBin(process.argv))
 	})
 .help().argv;
 
+
+/** Possible structure for l10n field in package.json, other than string or undefined. */
+interface ManifestL10nConfiguration {
+
+	/** The relative path to folder for l10n bundle files */
+	location: string;
+
+	/** Optional tag for default language of un-translated strings. */
+	defaultLocale?: string;
+}
+
+function loadL10nConfig(): string | ManifestL10nConfiguration | undefined {
+	try {
+		const meta = JSON.parse(readFileSync('package.json').toString('utf-8'));
+		return meta?.l10n as string | ManifestL10nConfiguration | undefined;
+	} catch(err) {
+		return undefined;
+	}
+}
+
 export async function l10nExportStrings(paths: string[], outDir?: string): Promise<void> {
 	logger.log('Searching for TypeScript/JavaScript files...');
 
@@ -187,19 +207,15 @@ export async function l10nExportStrings(paths: string[], outDir?: string): Promi
 	}
 	logger.log(`Extracted ${stringsFound} strings...`);
 
-	let packageJSON;
-	try {
-		packageJSON = JSON.parse(readFileSync('package.json').toString('utf-8'));
-	} catch(err) {
-		// Ignore
-	}
-	if (packageJSON) {
+	const l10nConfig = loadL10nConfig();
+	const defaultOut = l10nConfig && (typeof l10nConfig === 'string' ? l10nConfig : l10nConfig.location);
+	if (defaultOut) {
 		if (outDir) {
-			if (!packageJSON.l10n || path.resolve(packageJSON.l10n) !== path.resolve(outDir)) {
+			if (path.resolve(defaultOut) !== path.resolve(outDir)) {
 				console.warn('The l10n property in the package.json does not match the outDir specified. For an extension to work correctly, l10n must be set to the location of the bundle files.');
 			}
 		} else {
-			outDir = packageJSON.l10n ?? '.';
+			outDir = defaultOut ?? '.';
 		}
 	} else {
 		if (!outDir) {
@@ -214,7 +230,7 @@ export async function l10nExportStrings(paths: string[], outDir?: string): Promi
 	writeFileSync(resolvedOutFile, JSON.stringify(jsonResult, undefined, 2));
 }
 
-export function l10nGenerateXlf(paths: string[], language: string, outFile: string): void {
+export function l10nGenerateXlf(paths: string[], fallbackLang: string, outFile: string): void {
 	logger.log('Searching for L10N JSON files...');
 
 	const matches = glob.sync(
@@ -238,7 +254,9 @@ export function l10nGenerateXlf(paths: string[], language: string, outFile: stri
 	}
 	logger.log(`Found ${l10nFileContents.size} L10N JSON files. Generating XLF...`);
 
-	const result = getL10nXlf(l10nFileContents, { sourceLanguage: language });
+	const l10nConfig = loadL10nConfig();
+	const language = l10nConfig && (typeof l10nConfig !== 'string' ? l10nConfig.defaultLocale : undefined)
+	const result = getL10nXlf(l10nFileContents, { sourceLanguage: language || fallbackLang });
 	writeFileSync(path.resolve(outFile), result);
 	logger.log(`Wrote XLF file to: ${outFile}`);
 }
