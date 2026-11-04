@@ -8,10 +8,44 @@
  * The format of a message in a bundle.
  */
 
-export type l10nJsonMessageFormat = string | {
+export type l10nJsonMessageFormat = string | string[] | {
 	message: string;
 	comment: string[];
 };
+
+/**
+ * @public
+ * Normalizes a message format to a string by joining arrays with newlines
+ * @param value The message format to normalize
+ * @returns The normalized message string
+ */
+export function normalizeMessage(value: l10nJsonMessageFormat): string {
+	if (typeof value === 'string') {
+		return value;
+	}
+	if (Array.isArray(value)) {
+		return value.join('\n');
+	}
+	return value.message;
+}
+
+/**
+ * @public
+ * Normalizes all messages in an l10nJsonFormat object
+ * @param data The l10nJsonFormat object to normalize
+ * @returns A normalized l10nJsonFormat object with all arrays converted to strings
+ */
+export function normalizeL10nJsonFormat(data: l10nJsonFormat): l10nJsonFormat {
+	const normalized: l10nJsonFormat = {};
+	for (const [key, value] of Object.entries(data)) {
+		if (Array.isArray(value)) {
+			normalized[key] = value.join('\n');
+		} else {
+			normalized[key] = value;
+		}
+	}
+	return normalized;
+}
 
 /**
  * @public
