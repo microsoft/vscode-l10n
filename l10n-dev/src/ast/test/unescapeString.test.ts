@@ -18,3 +18,25 @@ describe('unescapeString', () => {
     });
   }
 });
+
+describe('unescapeString', () => {
+	it.each([
+		[String.raw`\u0041`, 'A'],
+		[String.raw`\u00E9\u4E2D`, 'é中'],
+		[String.raw`\uD83D\uDE00`, '😀'],
+		[String.raw`prefix} \u{1F600}`, 'prefix} 😀'],
+		[String.raw`{name} \u{41} \u{1F680}`, '{name} A 🚀'],
+		[String.raw`\u0041\u{1F600}\u0042`, 'A😀B'],
+	])('decodes Unicode escapes in %s', (input, expected) => {
+		expect(unescapeString(input)).toBe(expected);
+	});
+
+	it.each([
+		[String.raw`\u{1F600} \u{1F680}`, '😀 🚀'],
+		[String.raw`\x41\n\r\t\'\"\\`, 'A\n\r\t\'"\\'],
+		[String.raw`\\u0041`, String.raw`\u0041`],
+		[String.raw`plain {name}`, 'plain {name}'],
+	])('preserves existing escape behavior for %s', (input, expected) => {
+		expect(unescapeString(input)).toBe(expected);
+	});
+});
