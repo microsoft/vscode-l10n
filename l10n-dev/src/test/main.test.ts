@@ -8,6 +8,22 @@ import { getL10nFilesFromXlf, getL10nJson, getL10nPseudoLocalized, getL10nXlf } 
 
 describe('main', () => {
 	describe('getL10nJson', () => {
+		it.each(['.ts', '.js', '.tsx', '.jsx'])('decodes Unicode escapes during %s extraction', async (extension) => {
+			const result = await getL10nJson([{
+				extension,
+				contents: String.raw`
+					import * as l10n from '@vscode/l10n';
+					l10n.t("\u0041\u00E9\u4E2D\uD83D\uDE00");
+					l10n.t("{name} \u{1F600}", { name: "World" });
+					l10n.t({ message: "\u0042", comment: ["{context} \u{1F680}"] });`
+			}]);
+			expect(result).toEqual({
+				'Aé中😀': 'Aé中😀',
+				'{name} 😀': '{name} 😀',
+				'B/{context} 🚀': { message: 'B', comment: ['{context} 🚀'] }
+			});
+		});
+
 		it('works for ts', async () => {
 			const result = await getL10nJson([{
 				extension: '.ts',
