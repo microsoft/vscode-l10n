@@ -127,6 +127,21 @@ describe('main', () => {
 			expect(details[1]!.messages['id']).toBe('World');
 		});
 
+		it('round-trips messages that contain entity sequences', async () => {
+			const bundle = {
+				'Tom &amp; Jerry': 'Tom &amp; Jerry',
+				'Use &lt; for a literal <': 'Use &lt; for a literal <',
+				'Line&#10;break': 'Line&#10;break',
+			};
+			const xlf = getL10nXlf(new Map([['bundle', bundle]]));
+			const translated = xlf
+				.replace(/(<source xml:lang="en">)(.*?)<\/source>/g, '$1$2</source><target>$2</target>')
+				.replace('source-language="en" datatype', 'source-language="en" target-language="de" datatype');
+			const details = await getL10nFilesFromXlf(translated);
+			expect(details.length).toBe(1);
+			expect(details[0]!.messages).toEqual(bundle);
+		});
+
 		it('properly changes some of the languages based on VS Code language packs', async () => {
 			let details = await getL10nFilesFromXlf(generateTextXLF('zh-Hans'))
 			expect(details.length).toBe(2);
