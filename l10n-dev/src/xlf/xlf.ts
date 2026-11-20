@@ -176,7 +176,7 @@ export class XLF {
 						}
 					}
 
-					messagesMap.set(key, decodeEntities(target));
+					messagesMap.set(key, target);
 				});
 
 				// Sort result so it's predictable
@@ -224,15 +224,4 @@ function encodeEntities(value: string): string {
 		}
 	}
 	return result.join('');
-}
-
-function decodeEntities(value: string): string {
-	return value
-		.replace(/&quot;/g, '"')
-		.replace(/&apos;/g, "'")
-		.replace(/&lt;/g, '<')
-		.replace(/&gt;/g, '>')
-		.replace(/&#10;/g, '\n')
-		.replace(/&#13;/g, '\r')
-		.replace(/&amp;/g, '&');
 }
