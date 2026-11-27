@@ -41,11 +41,11 @@ export const unescapeString = (text: string): string => {
       case 'u': {
         let int: string;
         if (text[i + 2] === '{') {
-          end = text.indexOf('}') + 1; // unicode code point, \u{XX..}
+          end = text.indexOf('}', i + 3) + 1; // unicode code point, \u{XX..}
           int = text.slice(i + 3, end - 1);
         } else {
           end = i + 6; // unicode code point, \uXXXX
-          int = text.slice(i + 2, end - 1);
+          int = text.slice(i + 2, end);
         }
         replace = String.fromCodePoint(parseInt(int, 16));
         break;
