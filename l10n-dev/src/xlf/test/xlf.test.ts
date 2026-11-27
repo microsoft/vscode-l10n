@@ -223,6 +223,34 @@ note2</note>
             expect(result[0]!.messages['&&']).toBe('&&');
         });
 
+        it('decodes entities in targets only once', async () => {
+            const result = await XLF.parse(`
+    <?xml version="1.0" encoding="utf-8"?>
+    <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file original="bundle" source-language="en" datatype="plaintext" target-language="de">
+    <body>
+        <trans-unit id="++CODE++12ae32cb1ec02d01eda3581b127c1fee3b0dc53572ed6baf239721a03d82e126">
+            <source xml:lang="en">Tom &amp;amp; Jerry</source>
+            <target state="translated">Tom &amp;amp; Jerry</target>
+        </trans-unit>
+        <trans-unit id="++CODE++6f49cdbd80e1b95d5e6427e1501fc217790daee87055fa5b4e71064288bddede">
+            <source xml:lang="en">Use &amp;lt; for a literal &lt;</source>
+            <target state="translated">Verwende &amp;lt; für ein &lt;</target>
+        </trans-unit>
+        <trans-unit id="++CODE++4be261c018f23deac37f17f24abb5f42c4f32044fa3116d7b618446fb03ca09e">
+            <source xml:lang="en">&amp;quot;&amp;apos;&amp;gt;&amp;#10;&amp;#13;</source>
+            <target state="translated">&amp;quot;&amp;apos;&amp;gt;&amp;#10;&amp;#13;</target>
+        </trans-unit>
+    </body>
+    </file>
+    </xliff>`);
+
+            expect(result.length).toBe(1);
+            expect(result[0]!.messages['Tom &amp; Jerry']).toBe('Tom &amp; Jerry');
+            expect(result[0]!.messages['Use &lt; for a literal <']).toBe('Verwende &lt; für ein <');
+            expect(result[0]!.messages['&quot;&apos;&gt;&#10;&#13;']).toBe('&quot;&apos;&gt;&#10;&#13;');
+        });
+
         it ('sorts files by name and then messages by key', async () => {
             // Note that package comes before bundle but 
             const result = await XLF.parse(`
